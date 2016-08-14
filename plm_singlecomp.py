@@ -46,7 +46,7 @@ def plm(p,graph):
     ts=tt/n #plotting timestep
     tit=int(round(tt/dt)) #tt total time, tit - total number of steps 
     ton=0
-    toff=15000 #times when pump turned on & off 
+    toff=150000 #times when pump turned on & off 
     ctr=1 #counter for plotting points
     t=0 #real time
     sw=0 #switch for ATPase action 
@@ -89,8 +89,8 @@ def plm(p,graph):
         jp=p*(na/nao)**3 #cubic pump rate update (dependent on sodium gradient)
         
         #ionic flux equations
-        dna=-dt*Ar*(gna*(V-R*np.log(nao/na))+cna*jp) 
-        dk=-dt*Ar*(gk*(V-R*np.log(ko/k))-ck*jp)
+        dna=-dt*Ar*(gna*(V-R*np.log(nao/na))+cna*jp*sw) 
+        dk=-dt*Ar*(gk*(V-R*np.log(ko/k))-ck*jp*sw)
         dcl=dt*Ar*(gcl*(V+R*np.log(clo/cl))) #dna,dk,dcl: increase in intracellular ion conc during time step dt
         na+=dna
         k+=dk
