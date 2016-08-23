@@ -26,18 +26,32 @@ class Simulator:
             if _gui:
                 import gui
                 Simulator.__gui = gui.GUI()
+            Simulator.__single = self
         else:
             raise RuntimeError('A Simulator already exists')
-
-    @classmethod
-    def gui(cls):
-        return cls.__gui
 
     @classmethod
     def get_instance(cls):
         if not cls.__single:
             cls.__single = Simulator()
         return cls.__single
+
+    @classmethod
+    def time(cls):
+        return cls.__time
+
+    @classmethod
+    def gui(cls):
+        if cls.__gui is None:
+            import gui
+            Simulator.__gui = gui.GUI()
+        return cls.__gui
+
+    @classmethod
+    def object_list(cls, add=None):
+        if add is not None:
+            cls.__object_list.append(add)
+        return cls.__object_list
 
     @classmethod
     def run(cls, stop: float = None, dt: float = None):
@@ -52,7 +66,7 @@ class Simulator:
             stop = cls.__time.stop
         if dt is None:
             dt = cls.__time.dt
-        print("run from {0} until {1} with {2} timestep".format(0, stop, dt))
+        print("run from {0} until {1} with time step of {2} ".format(0, stop, dt))
         for t in range(0, int(round(stop / dt))):
             for compartment in cls.__object_list:
                 compartment.step(dt)
@@ -69,3 +83,10 @@ class Simulator:
             cls.__object_list.append(compartment)
         else:
             raise TypeError("Compartment instance expected {0} given".format(type(compartment)))
+
+    @classmethod
+    def dispose(cls):
+        cls.__single = None
+        cls.__time = None
+        cls.__gui = None
+        cls.__object_list = None

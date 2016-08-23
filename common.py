@@ -4,6 +4,7 @@ Created on Mon Aug 22 2016
 Python 3.x targeted
 @author: Chris Currin & Kira Dusterwalt
 """
+from constants import F
 # permeabilities
 gna = 3e-9
 gk = 5e-8
@@ -12,7 +13,7 @@ gcl = 5e-8  # gna,gk,gcl: conductances in mS/cm^2 conv to S/dm^2 (10^-3/10^-2) -
 ck = 2
 cna = 3  # cna,ck: pump (ATPase) stoichiometries
 # pump rates
-p = 1e-3
+p = 1e-5 / F
 # concentrations
 nao = 138e-3
 clo = 119e-3
