@@ -6,7 +6,7 @@ Python 3.x targeted
 """
 
 from graph import Graph
-
+import matplotlib.pyplot as plt
 
 class GUI:
     """
@@ -21,10 +21,18 @@ class GUI:
         print("GUI")
 
     @classmethod
+    def graph_list(cls):
+        return cls.__graph_list
+
+    @classmethod
     def new_graph(cls):
         g = Graph()
         GUI.__graph_list.append(g)
         return g
+
+    @classmethod
+    def block(cls, block=True):
+        plt.show(block=block)
 
     @classmethod
     def init(cls):

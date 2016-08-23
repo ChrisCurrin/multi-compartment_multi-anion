@@ -12,8 +12,11 @@ class Graph:
     Displays a graph for plotting of variables
     """
     def __init__(self):
-        plt.figure()
-        plt.plot([], [])
+        plt.ion()
+        self.fig = plt.figure()
+        self.ax = self.fig.add_subplot(111)
+        self.Ln, = self.ax.plot([0, 1])
+        plt.show(block=False)
         self.follow_list = []
 
     def graph(self, time, K, Na, Cl, X, Vm, W):
@@ -26,17 +29,23 @@ class Graph:
         plt.show()
 
     def add_var(self, x_object, x_var, y_object, y_var):
-        self.follow_list.append(((x_object, x_var), (y_object, y_var)))
+        self.follow_list.append(((x_object, x_var, []), (y_object, y_var, [])))
+        self.update()
 
     def update(self):
         for i, (x_tuple, y_tuple) in enumerate(self.follow_list):
-            (x_object, x_var) = x_tuple
-            (y_object, y_var) = y_tuple
-            x = x_object[x_var]
-            y = y_object[y_var]
-            plt.gca().lines[i].set_xdata(x)
-            plt.gca().lines[i].set_ydata(y)
-            plt.gca().relim()
-            plt.gca().autoscale_view()
-            plt.pause(0.05)
+            (x_object, x_var, x_data) = x_tuple
+            (y_object, y_var, y_data) = y_tuple
+            x_data.append(x_object[x_var])
+            y_data.append(y_object[y_var])
+
+    def plot_graph(self):
+        for i, (x_tuple, y_tuple) in enumerate(self.follow_list):
+            (x_object, x_var, x_data) = x_tuple
+            (y_object, y_var, y_data) = y_tuple
+            self.Ln.set_xdata(x_data)
+            self.Ln.set_ydata(y_data)
+            self.ax.relim()
+            self.ax.autoscale_view()
+            plt.pause(0.001)
 

@@ -6,6 +6,8 @@ Python 3.x targeted
 """
 import sim_time
 from compartment import Compartment
+import time
+from threading import Timer
 
 
 class Simulator:
@@ -18,6 +20,7 @@ class Simulator:
     __time = None
     __gui = None
     __object_list = None
+    run_done = None
 
     def __init__(self, _gui=True):
         if not Simulator.__single:
@@ -54,7 +57,7 @@ class Simulator:
         return cls.__object_list
 
     @classmethod
-    def run(cls, stop: float = None, dt: float = None):
+    def run(cls, stop: float = None, dt: float = None, plot_update_interval: float = 100, data_collect_interval: float = 0.1):
         """
         Run a time-based simulation.
         Each time-registered object is moved forward by dt
@@ -66,10 +69,30 @@ class Simulator:
             stop = cls.__time.stop
         if dt is None:
             dt = cls.__time.dt
+
         print("run from {0} until {1} with time step of {2} ".format(0, stop, dt))
+        cls.run_done = False
         for t in range(0, int(round(stop / dt))):
             for compartment in cls.__object_list:
                 compartment.step(dt)
+            if t % (data_collect_interval*1000) == 0:
+                cls.update_graphs()
+            if t % (plot_update_interval*1000) == 0:
+                cls.plot_graphs()
+        cls.run_done = True
+        cls.plot_graphs()
+        cls.__gui.block()
+
+    @classmethod
+    def update_graphs(cls):
+        if cls.run_done is False:
+            for graph in cls.__gui.graph_list():
+                graph.update()
+
+    @classmethod
+    def plot_graphs(cls):
+        for graph in cls.__gui.graph_list():
+            graph.plot_graph()
 
     @classmethod
     def register_compartment(cls, compartment):

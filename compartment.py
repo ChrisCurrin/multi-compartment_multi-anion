@@ -50,6 +50,8 @@ class Compartment(TimeMixin):
         self.V = self.FinvCAr * (self.nai + self.ki - self.cli + self.z * self.xi)
         # pump rate
         self.jp = p * (self.nai / nao) ** 3
+
+        self.time = 0
         # register component with simulator
         simulator.Simulator.get_instance().register_compartment(self)
 
@@ -94,7 +96,11 @@ class Compartment(TimeMixin):
         self.cli = (self.cli * self.w) / w2
         self.xi = (self.xi * self.w) / w2
         self.w = w2
+        self.time += _dt
         #print(self.V)
+
+    def __getitem__(self, item):
+        return self.__dict__[item]
 
     def __str__(self, *args, **kwargs):
         return "Compartment: " + str(self.__dict__)
