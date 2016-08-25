@@ -6,16 +6,27 @@ Python 3.x targeted
 """
 from simulator import Simulator
 from compartment import Compartment
+import time
 
 def main():
     print("main")
     sim = Simulator()
     gui = sim.gui()
-    comp = Compartment(kcc2=1)
+    comp = Compartment(kcc2=0,z=-0.85)
     print(comp.cli)
     g = gui.new_graph()
-    g.add_var(comp, "time", comp, "V")
-    sim.run(stop=1000,plot_update_interval=100)
+    g.add_var(comp, "time", comp, "V")      # black
+    g2 = gui.new_graph()
+    g2.add_var(comp, "time", comp, "cli")   # green
+    g3 = gui.new_graph()
+    g3.add_var(comp, "time", comp, "ki")    # cyan
+    g4 = gui.new_graph()
+    g4.add_var(comp, "time", comp, "nai")   # red
+    g5 = gui.new_graph()
+    g5.add_var(comp, "time", comp, "xi")    # dark blue
+    time.clock()
+    sim.run(stop=1000, plot_update_interval=1000)
+    print(time.clock())
     print(comp.cli)
     g.update()
 

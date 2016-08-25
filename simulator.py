@@ -57,30 +57,35 @@ class Simulator:
         return cls.__object_list
 
     @classmethod
-    def run(cls, stop: float = None, dt: float = None, plot_update_interval: float = 100, data_collect_interval: float = 0.1):
+    def run(cls, stop: float = None, dt: float = None, plot_update_interval: float = 100,
+            data_collect_interval: float = 0.1):
         """
         Run a time-based simulation.
         Each time-registered object is moved forward by dt
         :param stop:
         :param dt:
+        :param plot_update_interval: frequency to update graphs (in ms)
+        :param data_collect_interval: frequency to collect data for plotting (in ms)
         :return:
         """
         if stop is None:
             stop = cls.__time.stop
         if dt is None:
             dt = cls.__time.dt
-
+        if plot_update_interval < data_collect_interval:
+            data_collect_interval = plot_update_interval
         print("run from {0} until {1} with time step of {2} ".format(0, stop, dt))
         cls.run_done = False
         for t in range(0, int(round(stop / dt))):
             for compartment in cls.__object_list:
                 compartment.step(dt)
-            if t % (data_collect_interval*1000) == 0:
+            if t % (data_collect_interval / dt) == 0:
                 cls.update_graphs()
-            if t % (plot_update_interval*1000) == 0:
+            if t % (plot_update_interval / dt) == 0:
                 cls.plot_graphs()
         cls.run_done = True
         cls.plot_graphs()
+        print(time.clock())
         cls.__gui.block()
 
     @classmethod

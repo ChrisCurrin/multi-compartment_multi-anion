@@ -11,11 +11,15 @@ class Graph:
     """
     Displays a graph for plotting of variables
     """
+
     def __init__(self):
         plt.ion()
         self.fig = plt.figure()
+        self.fig.canvas.mpl_connect('close_event', self.handle_close)
         self.ax = self.fig.add_subplot(111)
         self.Ln, = self.ax.plot([0, 1])
+        #TODO: multiple ions one graph
+        plt.hold()
         plt.show(block=False)
         self.follow_list = []
 
@@ -49,3 +53,5 @@ class Graph:
             self.ax.autoscale_view()
             plt.pause(0.001)
 
+    def handle_close(self, evt):
+        print('Closed Figure!')
