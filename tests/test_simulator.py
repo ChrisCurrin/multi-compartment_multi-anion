@@ -1,7 +1,7 @@
 from unittest import TestCase
 from simulator import Simulator
 from compartment import Compartment
-
+import time
 
 class TestSimulator(TestCase):
     def setUp(self):
@@ -31,11 +31,35 @@ class TestSimulator(TestCase):
             self.sim = Simulator()
 
     def test_run(self):
-        self.sim.run()
+        """
+        RESULTS:
+        run from 0 until 10 with time step of 0.001
+        time taken for update interval of 0.01: 279.67880415916443
+        time taken for update interval of 0.1: 22.88223671913147
+        time taken for update interval of 1: 3.0911498069763184
+        time taken for update interval of 2: 1.8190715312957764
+        time taken for update interval of 5: 1.2316815853118896
+        time taken for update interval of 10: 0.944373607635498
+        time taken for update interval of 20: 0.9291894435882568
+        """
+
+        self.sim.dispose()
+        self.sim = Simulator(_gui=True)
+        comp = Compartment("soma")
+
+        v = self.sim.gui().add_graph()
+        v.add_voltage(comp, 'k')  # black
+        stop=5
+        l = [0.01,0.1,1,2,5,10,20]
+        l.reverse()
+        for pui in l:
+            t_before = time.time()
+            self.sim.run(stop=stop, plot_update_interval=pui, data_collect_interval=0.1, block_after=False)
+            print("time taken for update interval of {}: {}".format(pui,time.time()-t_before))
         pass
 
     def test_register_compartment(self):
-        comp = Compartment()
+        comp = Compartment("comp")
         # Compartment auto-added to __object_list
         self.assertListEqual(self.sim.object_list(), [comp])
         # Dispose and create a new Simulator

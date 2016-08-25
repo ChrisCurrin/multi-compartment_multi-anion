@@ -40,5 +40,8 @@ class Time(TimeMixin):
             dt = self.dt
         self.time += dt
 
+    def reset(self):
+        self.time = 0
+
     def __getitem__(self, item):
         return self.__dict__[item]

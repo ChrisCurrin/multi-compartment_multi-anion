@@ -30,9 +30,9 @@ class Graph:
             print("variable {} not present in {}".format(x_var, x_object))
         else:
             if line_style is None:
-                line, = self.ax.plot([], [], label=".".join([y_object.name,y_var]))
+                line, = self.ax.plot([], [], label=".".join([y_object.name, y_var]))
             else:
-                line, = self.ax.plot([], [], line_style, label=".".join([y_object.name,y_var]))
+                line, = self.ax.plot([], [], line_style, label=".".join([y_object.name, y_var]))
             self.follow_list.append(((x_object, x_var, []), (y_object, y_var, []), line))
             self.ax.legend()
             self.update()
@@ -40,8 +40,14 @@ class Graph:
     def add_voltage(self, y_object: any, line_style: str = None):
         self.add_var(self.time, "time", y_object, "V", line_style=line_style)
 
-    def add_ion_conc(self, y_object: any, ion: str, line_style: str=None):
+    def add_ion_conc(self, y_object: any, ion: str, line_style: str = None):
         self.add_var(self.time, "time", y_object, ion, line_style=line_style)
+
+    def clear(self):
+        for i, (x_tuple, y_tuple, line) in enumerate(self.follow_list):
+            (x_object, x_var, x_data) = x_tuple
+            (y_object, y_var, y_data) = y_tuple
+            self.follow_list[i] = ((x_object, x_var, []), (y_object, y_var, []), line)
 
     def update(self):
         """

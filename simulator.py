@@ -58,7 +58,7 @@ class Simulator:
 
     @classmethod
     def run(cls, stop: float = None, dt: float = None, plot_update_interval: float = 100,
-            data_collect_interval: float = 0.1):
+            data_collect_interval: float = 0.1, block_after=True):
         """
         Run a time-based simulation.
         Each time-registered object is moved forward by dt
@@ -66,7 +66,8 @@ class Simulator:
         :param dt:
         :param plot_update_interval: frequency to update graphs (in ms)
         :param data_collect_interval: frequency to collect data for plotting (in ms)
-        :return:
+        :param block_after: does gui cause a pause/block after run is finished. If False, graphs close immediately upon
+        completion (default: True)
         """
         if stop is None:
             stop = cls.__time.stop
@@ -76,18 +77,26 @@ class Simulator:
             data_collect_interval = plot_update_interval
         print("run from {0} until {1} with time step of {2} ".format(0, stop, dt))
         cls.run_done = False
+        cls.__time.reset()
+        cls.clear_graphs()
         for t in range(0, int(round(stop / dt))):
-            cls.__time.step(dt)
             for compartment in cls.__object_list:
-                compartment.step(dt)
+                compartment.step(cls.__time)
             if t % (data_collect_interval / dt) == 0:
                 cls.update_graphs()
             if t % (plot_update_interval / dt) == 0:
                 cls.plot_graphs()
+            cls.__time.step(dt)
         cls.run_done = True
         cls.plot_graphs()
-        print("time taken: {}".format(time.clock()))
-        cls.__gui.block()
+        if block_after:
+            print("time taken: {}".format(time.clock()))
+            cls.__gui.block()
+
+    @classmethod
+    def clear_graphs(cls):
+        for graph in cls.__gui.graph_list():
+            graph.clear()
 
     @classmethod
     def update_graphs(cls):

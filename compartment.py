@@ -11,7 +11,7 @@ from common import default_radius, default_length, \
     p, pkcc, \
     gk, gna, gcl, \
     ck, cna
-from sim_time import TimeMixin
+from sim_time import TimeMixin, Time
 import simulator
 
 
@@ -52,11 +52,10 @@ class Compartment(TimeMixin):
         # pump rate
         self.jp = p * (self.nai / nao) ** 3
 
-        self.time = 0
         # register component with simulator
         simulator.Simulator.get_instance().register_compartment(self)
 
-    def step(self, _dt: float = None):
+    def step(self, _time: Time = None):
         """
         perform a time step for the compartment
         1) update voltage (V)
@@ -66,10 +65,10 @@ class Compartment(TimeMixin):
         5) increment ionic concentrations
         6) update volume
         7) correct ionic concentrations due to volume change
-        :param _dt: the change in time
+        :param _time: time object for reference
         """
-        if _dt is None:
-            raise ValueError("{} has no timestep specified".format(self.__class__.__name__))
+        if _time is None:
+            raise ValueError("{} has no time object specified".format(self.__class__.__name__))
         # update voltage
         self.V = self.FinvCAr * (self.nai + self.ki - self.cli + self.z * self.xi)
         # update cubic pump rate (dependent on sodium gradient)
@@ -80,9 +79,9 @@ class Compartment(TimeMixin):
 
         # ionic flux equations
         # dna,dk,dcl: increase in intracellular ion conc during time step dt
-        dna = -_dt * self.Ar * (gna * (self.V - R * np.log(self.nao / self.nai)) + cna * self.jp)
-        dk = -_dt * self.Ar * (gk * (self.V - R * np.log(self.ko / self.ki)) - ck * self.jp + self.jkcc2)
-        dcl = _dt * self.Ar * (gcl * (self.V + R * np.log(self.clo / self.cli)) - self.jkcc2)
+        dna = -_time.dt * self.Ar * (gna * (self.V - R * np.log(self.nao / self.nai)) + cna * self.jp)
+        dk = -_time.dt * self.Ar * (gk * (self.V - R * np.log(self.ko / self.ki)) - ck * self.jp + self.jkcc2)
+        dcl = _time.dt * self.Ar * (gcl * (self.V + R * np.log(self.clo / self.cli)) - self.jkcc2)
 
         # increment concentrations
         self.nai += dna
@@ -99,7 +98,6 @@ class Compartment(TimeMixin):
         self.cli = (self.cli * self.w) / w2
         self.xi = (self.xi * self.w) / w2
         self.w = w2
-        self.time += _dt
         # print(self.V)
 
     def __getitem__(self, item):
