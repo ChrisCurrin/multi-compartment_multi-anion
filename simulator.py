@@ -28,7 +28,7 @@ class Simulator:
             Simulator.__object_list = []
             if _gui:
                 import gui
-                Simulator.__gui = gui.GUI()
+                Simulator.__gui = gui.GUI(Simulator.__time)
             Simulator.__single = self
         else:
             raise RuntimeError('A Simulator already exists')
@@ -47,7 +47,7 @@ class Simulator:
     def gui(cls):
         if cls.__gui is None:
             import gui
-            Simulator.__gui = gui.GUI()
+            Simulator.__gui = gui.GUI(Simulator.__time)
         return cls.__gui
 
     @classmethod
@@ -77,6 +77,7 @@ class Simulator:
         print("run from {0} until {1} with time step of {2} ".format(0, stop, dt))
         cls.run_done = False
         for t in range(0, int(round(stop / dt))):
+            cls.__time.step(dt)
             for compartment in cls.__object_list:
                 compartment.step(dt)
             if t % (data_collect_interval / dt) == 0:
@@ -85,7 +86,7 @@ class Simulator:
                 cls.plot_graphs()
         cls.run_done = True
         cls.plot_graphs()
-        print(time.clock())
+        print("time taken: {}".format(time.clock()))
         cls.__gui.block()
 
     @classmethod

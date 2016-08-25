@@ -8,6 +8,7 @@ Python 3.x targeted
 from graph import Graph
 import matplotlib.pyplot as plt
 
+
 class GUI:
     """
     Instantiates a GUI
@@ -15,18 +16,19 @@ class GUI:
     A note on patterns: http://stackoverflow.com/questions/1318406/why-is-the-borg-pattern-better-than-the-singleton-pattern-in-python
     """
     __graph_list = []
+    __time = None
 
     @classmethod
-    def __init__(cls):
-        print("GUI")
+    def __init__(cls, _time):
+        GUI.__time = _time
 
     @classmethod
     def graph_list(cls):
         return cls.__graph_list
 
     @classmethod
-    def new_graph(cls):
-        g = Graph()
+    def add_graph(cls):
+        g = Graph(cls.__time)
         GUI.__graph_list.append(g)
         return g
 
@@ -39,5 +41,6 @@ class GUI:
         # Define any computation performed when assigning to a "new" object
         return cls
 
+
 # generator methods for class methods
-new_graph = GUI.new_graph
+new_graph = GUI.add_graph

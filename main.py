@@ -8,27 +8,24 @@ from simulator import Simulator
 from compartment import Compartment
 import time
 
+
 def main():
     print("main")
     sim = Simulator()
     gui = sim.gui()
-    comp = Compartment(kcc2=0,z=-0.85)
+    t = sim.time()
+    comp = Compartment("soma", kcc2=0, z=-0.85)
     print(comp.cli)
-    g = gui.new_graph()
-    g.add_var(comp, "time", comp, "V")      # black
-    g2 = gui.new_graph()
-    g2.add_var(comp, "time", comp, "cli")   # green
-    g3 = gui.new_graph()
-    g3.add_var(comp, "time", comp, "ki")    # cyan
-    g4 = gui.new_graph()
-    g4.add_var(comp, "time", comp, "nai")   # red
-    g5 = gui.new_graph()
-    g5.add_var(comp, "time", comp, "xi")    # dark blue
+    v = gui.add_graph()
+    v.add_voltage(comp, 'k')  # black
+    g = gui.add_graph()
+    g.add_ion_conc(comp, "cli", 'g')  # green
+    g.add_ion_conc(comp, "ki", 'c')   # cyan
+    g.add_ion_conc(comp, "nai", 'r')  # red
+    g.add_ion_conc(comp, "xi", 'blue')  # blue
     time.clock()
-    sim.run(stop=1000, plot_update_interval=1000)
-    print(time.clock())
-    print(comp.cli)
-    g.update()
+    sim.run(stop=1000, plot_update_interval=100)
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     main()

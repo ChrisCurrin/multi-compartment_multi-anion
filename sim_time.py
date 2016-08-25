@@ -15,24 +15,30 @@ class TimeMixin(metaclass=ABCMeta):
 
 class Time(TimeMixin):
     """
-        Instantiates a Time control
-        Unique Pattern
-        A note on patterns: http://stackoverflow.com/questions/1318406/why-is-the-borg-pattern-better-than-the-singleton-pattern-in-python
-        """
-    t = None
-    dt = None
-    stop = None
+    Instantiates a Time control
+    Borg Pattern
+    A note on patterns: http://stackoverflow.com/questions/1318406/why-is-the-borg-pattern-better-than-the-singleton-pattern-in-python
+    """
+    __monostate = None
 
-    @classmethod
-    def __init__(cls, _t=0, _dt=1e-3, stop=5.0):
-        Time.t = _t
-        Time.dt = _dt
-        Time.stop = stop
+    def __init__(self, t=0, dt=1e-3, stop=5):
+        if not Time.__monostate:
+            Time.__monostate = self.__dict__
+            # Your definitions here
+            self.time = t
+            self.dt = dt
+            self.stop = stop
+        else:
+            self.__dict__ = Time.__monostate
 
-    @classmethod
-    def step(cls):
+    def step(self, dt=None):
         """
         Moves forward one time step
         :return:
         """
-        Time.t += Time.dt
+        if dt is None:
+            dt = self.dt
+        self.time += dt
+
+    def __getitem__(self, item):
+        return self.__dict__[item]

@@ -20,7 +20,8 @@ class Compartment(TimeMixin):
 
     """
 
-    def __init__(self, radius=default_radius, length=default_length, kcc2=0, z=-1):
+    def __init__(self, name, radius=default_radius, length=default_length, kcc2=0, z=-1):
+        self.name = name
         self.r = radius  # in um
         self.L = length  # in um
         self.gkcc = kcc2  # strength of kcc2
@@ -55,7 +56,7 @@ class Compartment(TimeMixin):
         # register component with simulator
         simulator.Simulator.get_instance().register_compartment(self)
 
-    def step(self, _dt: float = 0):
+    def step(self, _dt: float = None):
         """
         perform a time step for the compartment
         1) update voltage (V)
@@ -67,6 +68,8 @@ class Compartment(TimeMixin):
         7) correct ionic concentrations due to volume change
         :param _dt: the change in time
         """
+        if _dt is None:
+            raise ValueError("{} has no timestep specified".format(self.__class__.__name__))
         # update voltage
         self.V = self.FinvCAr * (self.nai + self.ki - self.cli + self.z * self.xi)
         # update cubic pump rate (dependent on sodium gradient)
@@ -97,7 +100,7 @@ class Compartment(TimeMixin):
         self.xi = (self.xi * self.w) / w2
         self.w = w2
         self.time += _dt
-        #print(self.V)
+        # print(self.V)
 
     def __getitem__(self, item):
         return self.__dict__[item]

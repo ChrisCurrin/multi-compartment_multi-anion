@@ -12,46 +12,61 @@ class Graph:
     Displays a graph for plotting of variables
     """
 
-    def __init__(self):
+    def __init__(self, _time):
+        self.time = _time
         plt.ion()
         self.fig = plt.figure()
         self.fig.canvas.mpl_connect('close_event', self.handle_close)
         self.ax = self.fig.add_subplot(111)
-        self.Ln, = self.ax.plot([0, 1])
-        #TODO: multiple ions one graph
         plt.hold()
         plt.show(block=False)
         self.follow_list = []
 
-    def graph(self, time, K, Na, Cl, X, Vm, W):
-        plt.subplot(2, 1, 1)
-        plt.plot(time, K, '-c', time, Na, '-r', time, Cl, '-g', time, X, '-b', time, Vm, '--')
-        plt.legend(['E_K', 'E_Na', 'E_Cl', 'E_X', 'V_m'])
-        plt.subplot(2, 1, 2)
-        plt.plot(time, W, label='relative volume')
-        plt.legend()
-        plt.show()
+    def add_var(self, x_object: any, x_var: str, y_object: any, y_var: str, line_style: str = None):
+        try:
+            x_object[x_var]
+            y_object[y_var]
+        except KeyError:
+            print("variable {} not present in {}".format(x_var, x_object))
+        else:
+            if line_style is None:
+                line, = self.ax.plot([], [], label=".".join([y_object.name,y_var]))
+            else:
+                line, = self.ax.plot([], [], line_style, label=".".join([y_object.name,y_var]))
+            self.follow_list.append(((x_object, x_var, []), (y_object, y_var, []), line))
+            self.ax.legend()
+            self.update()
 
-    def add_var(self, x_object, x_var, y_object, y_var):
-        self.follow_list.append(((x_object, x_var, []), (y_object, y_var, [])))
-        self.update()
+    def add_voltage(self, y_object: any, line_style: str = None):
+        self.add_var(self.time, "time", y_object, "V", line_style=line_style)
+
+    def add_ion_conc(self, y_object: any, ion: str, line_style: str=None):
+        self.add_var(self.time, "time", y_object, ion, line_style=line_style)
 
     def update(self):
-        for i, (x_tuple, y_tuple) in enumerate(self.follow_list):
+        """
+        For each variable tracked, place the object's variable value in a list.
+        The object must contain the variable of interest and implement:
+
+        def __getitem__(self, item):
+            return self.__dict__[item]
+
+        """
+        for i, (x_tuple, y_tuple, line) in enumerate(self.follow_list):
             (x_object, x_var, x_data) = x_tuple
             (y_object, y_var, y_data) = y_tuple
             x_data.append(x_object[x_var])
             y_data.append(y_object[y_var])
 
     def plot_graph(self):
-        for i, (x_tuple, y_tuple) in enumerate(self.follow_list):
+        for i, (x_tuple, y_tuple, line) in enumerate(self.follow_list):
             (x_object, x_var, x_data) = x_tuple
             (y_object, y_var, y_data) = y_tuple
-            self.Ln.set_xdata(x_data)
-            self.Ln.set_ydata(y_data)
-            self.ax.relim()
-            self.ax.autoscale_view()
-            plt.pause(0.001)
+            line.set_xdata(x_data)
+            line.set_ydata(y_data)
+        self.ax.relim()
+        self.ax.autoscale_view()
+        plt.pause(0.001)
 
     def handle_close(self, evt):
         print('Closed Figure!')
