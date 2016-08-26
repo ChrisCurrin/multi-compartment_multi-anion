@@ -79,6 +79,7 @@ class Simulator:
         cls.run_done = False
         cls.__time.reset()
         cls.clear_graphs()
+        time.clock()
         for t in range(0, int(round(stop / dt))):
             for compartment in cls.__object_list:
                 compartment.step(cls.__time)
@@ -89,8 +90,8 @@ class Simulator:
             cls.__time.step(dt)
         cls.run_done = True
         cls.plot_graphs()
+        print("time taken: {}".format(time.clock()))
         if block_after:
-            print("time taken: {}".format(time.clock()))
             cls.__gui.block()
 
     @classmethod
@@ -117,7 +118,7 @@ class Simulator:
         :return:
         :raise TypeError if compartment not an instance of Compartment
         """
-        if isinstance(compartment, Compartment):
+        if isinstance(compartment, sim_time.TimeMixin):
             cls.__object_list.append(compartment)
         else:
             raise TypeError("Compartment instance expected {0} given".format(type(compartment)))

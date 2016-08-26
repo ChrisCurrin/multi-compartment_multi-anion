@@ -103,5 +103,8 @@ class Compartment(TimeMixin):
     def __getitem__(self, item):
         return self.__dict__[item]
 
+    def __setitem__(self, key, value):
+        self.__dict__[key] = value
+
     def __str__(self, *args, **kwargs):
         return "Compartment: " + str(self.__dict__)
