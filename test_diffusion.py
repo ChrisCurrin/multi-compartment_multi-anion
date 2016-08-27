@@ -1,4 +1,5 @@
 import simulator
+import copy
 from diffusion import Diffusion
 from compartment import Compartment
 from unittest import TestCase
@@ -43,8 +44,7 @@ class SimpleCompartment(Compartment):
         super().__init__(*args, **kwargs)
 
     def copy(self, name):
-        return SimpleCompartment(name, radius=self.r, length=self.L, kcc2=self.pkcc, z=self.z, cli=self.cli, ki=self.ki,
-                                 nai=self.nai)
+        return copy.deepcopy(self)
 
     def step(self, _time=None):
         pass

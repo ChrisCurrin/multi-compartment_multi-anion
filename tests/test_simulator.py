@@ -48,9 +48,9 @@ class TestSimulator(TestCase):
         comp = Compartment("soma")
 
         v = self.sim.gui().add_graph()
-        v.add_voltage(comp, 'k')  # black
+        v.add_voltage(comp, line_style='k')  # black
         stop=5
-        l = [0.01,0.1,1,2,5,10,20]
+        l = [0.1,1,2,5,10,20]
         l.reverse()
         for pui in l:
             t_before = time.time()

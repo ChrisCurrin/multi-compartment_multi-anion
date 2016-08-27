@@ -5,6 +5,7 @@ Python 3.x targeted
 @author: Chris Currin & Kira Dusterwalt
 """
 import numpy as np
+import copy
 from constants import F, R
 from common import default_radius, default_length, \
     clo, ko, nao, \
@@ -103,8 +104,7 @@ class Compartment(TimeMixin):
         self.L = self.w / (np.pi * self.r ** 2)
 
     def copy(self, name):
-        return Compartment(name, radius=self.r, length=self.L, kcc2=self.pkcc, z=self.z, cli=self.cli, ki=self.ki,
-                           nai=self.nai)
+        return copy.deepcopy(self)
 
     def __getitem__(self, item):
         return self.__dict__[item]
