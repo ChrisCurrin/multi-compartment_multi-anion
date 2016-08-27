@@ -20,21 +20,22 @@ class Compartment(TimeMixin):
 
     """
 
-    def __init__(self, name, radius=default_radius, length=default_length, kcc2=0, z=-1):
+    def __init__(self, name, radius=default_radius, length=default_length, kcc2=0, z=-1, nai=140e-3, ki=2.5e-3,
+                 cli=78.3931e-3):
         self.name = name
         self.r = radius  # in um
         self.L = length  # in um
-        self.gkcc = kcc2  # strength of kcc2
+        self.pkcc = kcc2  # strength of kcc2
         self.z = z  # intracellular charge of impermeant anions
         self.w = np.pi * self.r ** 2 * self.L  # initial volume in liters
         self.Ar = 4e6  # area constant (F and H method)
         self.C = 7e-6  # capacitance (F/dm^2)
         # (F/C*area scaling constant)
         self.FinvCAr = F / (self.C * self.Ar)
-        self.nai = 140e-3
-        self.ki = 2.5e-3
-        self.cli = 78.3931e-3
         # na,k,cl,x: intracellular starting concentrations
+        self.nai = nai
+        self.ki = ki
+        self.cli = cli
         self.xi = (self.cli - self.ki - self.nai) / self.z
         # intracellular osmolarity
         self.osi = self.nai + self.ki + self.cli + self.xi
@@ -74,7 +75,7 @@ class Compartment(TimeMixin):
         # update cubic pump rate (dependent on sodium gradient)
         self.jp = p * (self.nai / self.nao) ** 3
         # kcc2
-        self.jkcc2 = (gk * pkcc * (self.ki * self.clo - self.ki * self.cli))  # Fraser and Huang
+        self.jkcc2 = (gk * self.pkcc * (self.ki * self.clo - self.ki * self.cli))  # Fraser and Huang
         # jkcc2=sw*gk*pkcc*(K[ctr-2]-Cl[ctr-2])/10000.0 #Doyon
 
         # ionic flux equations
@@ -98,7 +99,12 @@ class Compartment(TimeMixin):
         self.cli = (self.cli * self.w) / w2
         self.xi = (self.xi * self.w) / w2
         self.w = w2
-        # print(self.V)
+        # affect volume change into length change
+        self.L = self.w / (np.pi * self.r ** 2)
+
+    def copy(self, name):
+        return Compartment(name, radius=self.r, length=self.L, kcc2=self.pkcc, z=self.z, cli=self.cli, ki=self.ki,
+                           nai=self.nai)
 
     def __getitem__(self, item):
         return self.__dict__[item]

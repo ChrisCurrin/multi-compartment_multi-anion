@@ -21,6 +21,7 @@ class GUI:
     @classmethod
     def __init__(cls, _time):
         GUI.__time = _time
+        plt.ion()
 
     @classmethod
     def graph_list(cls):
