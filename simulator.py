@@ -82,7 +82,7 @@ class Simulator:
         cls.__time.reset()
         cls.clear_graphs()
         time.clock()
-        for t in range(0, int(round(stop / dt))):
+        for t in range(1, int(round(stop / dt))+1):
             if t % (data_collect_interval / dt) == 0:
                 cls.update_graphs()
             if t % (plot_update_interval / dt) == 0:

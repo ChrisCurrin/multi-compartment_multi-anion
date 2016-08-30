@@ -40,6 +40,10 @@ class TestDiffusion(TestCase):
 
 
 class SimpleCompartment(Compartment):
+    """
+    Compartment without internally changing ion concentrations over time.
+    Ion changes should only be done by a Diffusion class
+    """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -47,4 +51,8 @@ class SimpleCompartment(Compartment):
         return copy.deepcopy(self)
 
     def step(self, _time=None):
+        """
+        Overriden method from Compartment to prevent internal ion changes
+        :param _time: Time object (required from abstract method)
+        """
         pass

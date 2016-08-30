@@ -13,8 +13,9 @@ def main():
     print("main")
     sim = Simulator()
     gui = sim.gui()
-
-    comp = Compartment("soma", kcc2=0, z=-0.85, nai=0.1143, ki=0.0229, cli=0.01321)
+    dt = 0.001
+    comp = Compartment("soma", pkcc2=0, z=-0.85,
+                       cli=0.015292947537423218, ki=0.023836660428807395, nai=0.1135388427892471)
 
     v = gui.add_graph()
     v.add_voltage(comp, line_style='k', units_scale=1000, plot_units='mV')  # black
@@ -26,28 +27,43 @@ def main():
 
     # find steady-state values of ions
     # sim.run(stop=1000, dt=0.001, plot_update_interval=150, data_collect_interval=10, block_after=False)
+    # values from steady-state
+    # comp.cli=0.015292947537423218
+    # comp.ki=0.023836660428807395
+    # comp.nai=0.1135388427892471
+    # comp.xi=0.14364453159746354
+    print("Ion concentrations")
+    for ion in ["cli", "ki", "nai", "xi"]:
+        print("{}.{}:{}".format(comp.name, ion, comp[ion]))
 
     comp2 = comp.copy("dendrite")
-    comp2.cli = 0.10
-    comp.cli = 0.01
-    D = 1               # um2/ms
-    D = (D*1e-5) ** 2   # um2 to dm2 (D in dm2/ms)
-    diffusion_object = Diffusion(comp, comp2, ion='cli', D=D)
+    print("Voltages:\n{}:{} \t {}:{}".format(comp.name,comp.V,comp2.name,comp2.V))
+
+    # change ion concentration
+    comp2.cli = 0.05
+    #comp.cli = 0.05
+
+    # set diffusion value
+    D = 1  # um2/ms
+    D = (D * 1e-5) ** 2  # um2 to dm2 (D in dm2/ms)
+    # create diffusion connection
+    diffusion_object = Diffusion(comp, comp2, ions=['cli'], D=D)
+
     print(diffusion_object.dx)
-    print(diffusion_object.ficks_law("cli", D=D)*1e8/diffusion_object.dx)   # (M * dm) to (mM * um) per ms
+    print(diffusion_object.ficks_law("cli", D=D)*dt/diffusion_object.dx)   # (M * dm) to (mM * um) per ms
+    print("Ion concentrations")
     for ion in ["cli", "ki", "nai", "xi"]:
-        print(ion)
-        print("{}:{} \t {}:{}".format(comp.name, comp[ion], comp2.name, comp2[ion]))
+        print("{}.{}:{} \t {}.{}:{} ".format(comp.name, ion, comp[ion], comp2.name, ion, comp2[ion]))
     v.add_voltage(comp2, line_style='--k', units_scale=1000, plot_units='mV')  # black
     g.add_ion_conc(comp2, "cli", line_style='--g')  # green
     g.add_ion_conc(comp2, "ki", line_style='--c')  # cyan
     g.add_ion_conc(comp2, "nai", line_style='--r')  # red
     g.add_ion_conc(comp2, "xi", line_style='--b')  # blue
 
-    sim.run(stop=0.01, dt=0.001, plot_update_interval=1, data_collect_interval=0.001)
+    sim.run(stop=50, dt=dt, plot_update_interval=5, data_collect_interval=0.025)
+    print("Ion concentrations")
     for ion in ["cli", "ki", "nai", "xi"]:
-        print(ion)
-        print("{}:{} \t {}:{}".format(comp.name, comp[ion], comp2.name, comp2[ion]))
+        print("{}.{}:{} \t {}.{}:{} ".format(comp.name, ion, comp[ion], comp2.name, ion, comp2[ion]))
 
 
 if __name__ == "__main__":

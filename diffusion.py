@@ -4,10 +4,10 @@ from sim_time import TimeMixin, Time
 
 
 class Diffusion(TimeMixin):
-    def __init__(self, comp_a: Compartment, comp_b: Compartment, ion: str, D: float):
+    def __init__(self, comp_a: Compartment, comp_b: Compartment, ions: list, D: float):
         self.comp_a = comp_a
         self.comp_b = comp_b
-        self.ion = ion
+        self.ions = ions
         self.D = D
         self.dx = self.comp_a.L / 2 + self.comp_b.L / 2
         # register component with simulator
@@ -17,13 +17,11 @@ class Diffusion(TimeMixin):
         """
         Diffusion equation between compartments for each time step
         """
-        F = self.ficks_law(self.ion, self.D/_time.dt)
-        # F in M/ms * dm
-        # should self.dx/2 be used instead?
-        #   rationale for /2:
-        #       the ions only need to travel half of dx to meet the other compartment's ions
-        self.comp_a[self.ion] += F/_time.dt * self.dx
-        self.comp_b[self.ion] -= F/_time.dt * self.dx
+        for ion in self.ions:
+            F = self.ficks_law(ion, self.D/_time.dt)
+            # F in M/ms * dm
+            self.comp_a[ion] += F*_time.dt / self.dx
+            self.comp_b[ion] -= F*_time.dt / self.dx
 
     def ficks_law(self, ion: str, D: float):
         """
