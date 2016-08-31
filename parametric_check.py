@@ -56,7 +56,7 @@ def checkpara(kcc2=0,z=-0.85):
 
     for k in T:
         q = 10 ** (k) / F
-        comp = Compartment("soma with pump rate 1e" + str(k) + "/F", kcc2=kcc2, z=z,p=q)
+        comp = Compartment("soma with pump rate 1e" + str(k) + "/F", pkcc2=kcc2, z=z,p=q)
         time.clock()
         sim.run(stop=5000, plot_update_interval=5000)
         ti[0].append(comp.V)
@@ -65,9 +65,9 @@ def checkpara(kcc2=0,z=-0.85):
         ti[3].append(comp.cli)
         ti[4].append(comp.xi)
 
-    print(ti)
     para = zplm(z,kcc2,comp.oso)
-
+    
+    plt.figure()
     plt.plot(para[0], para[1], 'r', para[0], para[2], 'c', para[0], para[3], 'g', para[0], para[4], 'b', para[0],
              para[5], 'k', T, ti[0], 'ok', T, ti[1], 'oc', T, ti[2], 'or', T, ti[3], 'og', T, ti[4], 'ob')
     plt.title(
