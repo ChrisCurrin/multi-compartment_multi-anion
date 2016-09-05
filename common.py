@@ -4,7 +4,10 @@ Created on Mon Aug 22 2016
 Python 3.x targeted
 @author: Chris Currin & Kira Dusterwalt
 """
-from constants import F
+from constants import F, R
+
+T = 25 + 273.15
+RTF = R*T / F
 # permeabilities
 gna = 3e-9
 gk = 5e-8

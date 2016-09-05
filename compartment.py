@@ -5,11 +5,11 @@ Python 3.x targeted
 @author: Chris Currin & Kira Dusterwald
 """
 import numpy as np
-import copy
-from constants import F, R
+from constants import F
+from common import RTF
 from common import default_radius, default_length, \
     clo, ko, nao, \
-    default_p, pkcc, \
+    default_p, \
     gk, gna, gcl, \
     ck, cna
 from sim_time import TimeMixin, Time
@@ -83,9 +83,9 @@ class Compartment(TimeMixin):
 
         # ionic flux equations
         # dna,dk,dcl: increase in intracellular ion conc during time step dt
-        dna = -_time.dt * self.Ar * (gna * (self.V - R * np.log(self.nao / self.nai)) + cna * self.jp)
-        dk = -_time.dt * self.Ar * (gk * (self.V - R * np.log(self.ko / self.ki)) - ck * self.jp + self.jkcc2)
-        dcl = _time.dt * self.Ar * (gcl * (self.V + R * np.log(self.clo / self.cli)) - self.jkcc2)
+        dna = -_time.dt * self.Ar * (gna * (self.V - RTF * np.log(self.nao / self.nai)) + cna * self.jp)
+        dk = -_time.dt * self.Ar * (gk * (self.V - RTF * np.log(self.ko / self.ki)) - ck * self.jp + self.jkcc2)
+        dcl = _time.dt * self.Ar * (gcl * (self.V + RTF * np.log(self.clo / self.cli)) - self.jkcc2)
 
         # increment concentrations
         self.nai += dna
