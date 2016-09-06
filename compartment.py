@@ -21,8 +21,8 @@ class Compartment(TimeMixin):
 
     """
 
-    def __init__(self, name, radius=default_radius, length=default_length, pkcc2=0, z=-1, nai=140e-3, ki=2.5e-3,
-                 cli=78.3931e-3,p=default_p):
+    def __init__(self, name, radius=default_radius, length=default_length, pkcc2=0, z=-1.0, nai=140e-3, ki=2.5e-3,
+                 cli=78.3931e-3, p=default_p):
         self.name = name
         self.r = radius  # in um
         self.L = length  # in um
@@ -48,7 +48,7 @@ class Compartment(TimeMixin):
         self.ko = ko
         self.clo = clo
         # define step attributes for t=0
-        
+
         # define constant element of pump rate
         self.p = p
         # voltage
@@ -106,7 +106,8 @@ class Compartment(TimeMixin):
         self.L = self.w / (np.pi * self.r ** 2)
 
     def copy(self, name):
-        comp = Compartment(name, radius=self.r, length=self.L, pkcc2=self.pkcc2, z=self.z, nai=self.nai, ki=self.ki, cli=self.cli, p=self.p)
+        comp = Compartment(name, radius=self.r, length=self.L, pkcc2=self.pkcc2, z=self.z, nai=self.nai, ki=self.ki,
+                           cli=self.cli, p=self.p)
         return comp
 
     def __getitem__(self, item):
