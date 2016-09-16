@@ -14,10 +14,10 @@ class TestDiffusion(TestCase):
         self.ion = "cli"
         self.ions = ["cli"]
         D = 1  # um2/ms # == 10-5 * cm2/s
-        self.D = (D * 1e-5) ** 2  # um2 to dm2 (D in dm2/ms)
+        self.D = D * 1e-5 ** 2  # um2 to dm2 (D in dm2/ms)
         self.gui = False
 
-    def run_diffusion(self, gui=False, block_after=False):
+    def run_diffusion(self, time_stop=10, gui=False, block_after=False):
         """
         Helper method for unit tests
         """
@@ -30,7 +30,8 @@ class TestDiffusion(TestCase):
         sim.run(stop=10, dt=0.001)
         print("after run:\n\t{}:{} \t {}:{}".format(comp.name, round(comp[ion], 5), comp2.name, round(comp2[ion], 5)))
         self.assertEqual(round(comp[ion], 5), round(comp2[ion], 5))
-        comp.cli += comp.cli / 2
+        comp.cli += 1e-3
+        comp.ki += 1e-3
         print("value changed\nbefore run:\n\t{}:{} \t {}:{}".format(comp.name, round(comp[ion], 5), comp2.name,
                                                                     round(comp2[ion], 5)))
         self.assertNotEqual(round(comp[ion], 5), round(comp2[ion], 5))
@@ -38,29 +39,29 @@ class TestDiffusion(TestCase):
             g = sim.gui().add_graph()
             g.add_ion_conc(comp2, "cli", line_style='--g')  # green
             g.add_ion_conc(comp, "cli", line_style='g')  # green
-        sim.run(stop=0.006, dt=0.001, block_after=block_after)
+            v = sim.gui().add_graph()
+            v.add_voltage(comp2, line_style='--k', units_scale=1000, plot_units='mV')  # black
+            v.add_voltage(comp, line_style='k', units_scale=1000, plot_units='mV')
+
+        sim.run(stop=time_stop, dt=0.001, block_after=block_after)
         print("after run:\n\t{}:{} \t {}:{}".format(comp.name, round(comp[ion], 5), comp2.name, round(comp2[ion], 5)))
         self.assertEqual(round(comp[ion], 5), round(comp2[ion], 5))
 
     def test_diffusion_compartments(self):
         self.d = Diffusion(self.comp, self.comp2, self.ions, D=self.D)
-        self.run_diffusion(True, True)
+        self.run_diffusion(50, True, True)
 
     def test_fick_diffusion_compartments(self):
         self.d = FickDiffusion(self.comp, self.comp2, self.ions, D=self.D)
-        self.run_diffusion(True, True)
+        self.run_diffusion(50, True, True)
 
     def test_ohm_diffusion_compartments(self):
         """
         Test diffusion between compartments with only Ohm's law taken into account.
-        A normal Compartment (as opposed to SimpleCompartment) is used calculate V accurately
         :return:
         """
-        self.comp = SimpleCompartment("c1", pkcc2=0, z=-0.85,
-                                      cli=0.015292947537423218, ki=0.023836660428807395, nai=0.1135388427892471)
-        self.comp2 = self.comp.copy("c2")
         self.d = OhmDiffusion(self.comp, self.comp2, self.ions, D=self.D)
-        self.run_diffusion(True, True)
+        self.run_diffusion(1, True, True)
 
     def test_ohm_diffusion_compartments_complex(self):
         """
@@ -72,7 +73,7 @@ class TestDiffusion(TestCase):
                                       cli=0.015292947537423218, ki=0.023836660428807395, nai=0.1135388427892471)
         self.comp2 = self.comp.copy("c2")
         self.d = OhmDiffusion(self.comp, self.comp2, self.ions, D=self.D)
-        self.run_diffusion(True, True)
+        self.run_diffusion(1, True, True)
 
     def test_multi(self):
         self.setUp()
@@ -108,6 +109,7 @@ class SimpleCompartment(Compartment):
     def step(self, _time=None):
         """
         Overriden method from Compartment to prevent internal ion changes
+        Voltage updated for Ohm's law of drift considerations
         :param _time: Time object (required from abstract method)
         """
         self.V = self.FinvCAr * (self.nai + self.ki - self.cli + self.z * self.xi)

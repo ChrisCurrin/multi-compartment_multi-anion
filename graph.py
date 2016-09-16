@@ -22,6 +22,18 @@ class Graph:
         self.follow_list = []
 
     def add_var(self, x_object: any, x_var: str, y_object: any, y_var: str, line_style: str = None, units_scale: float = None, plot_units:str = None):
+        # TODO: docstring
+        """
+
+        :param x_object:
+        :param x_var:
+        :param y_object:
+        :param y_var:
+        :param line_style:
+        :param units_scale:
+        :param plot_units:
+        :return: self for chaining
+        """
         try:
             x_object[x_var]
             y_object[y_var]
@@ -37,14 +49,36 @@ class Graph:
             self.follow_list.append(((x_object, x_var, []), (y_object, y_var, [], units_scale), line))
             self.ax.legend()
             self.update()
+        return self
 
     def add_voltage(self, y_object: any, **kwargs):
+        # TODO: docstring
+        """
+
+        :param y_object:
+        :param kwargs:
+        :return: self for chaining
+        """
         self.add_var(self.time, "time", y_object, "V", **kwargs)
+        return self
 
     def add_ion_conc(self, y_object: any, ion: str, **kwargs):
+        # TODO: docstring
+        """
+
+        :param y_object:
+        :param ion:
+        :param kwargs:
+        :return: self for chaining
+        """
         self.add_var(self.time, "time", y_object, ion, **kwargs)
+        return self
 
     def clear(self):
+        # TODO: docstring
+        """
+
+        """
         for i, (x_tuple, y_tuple, line) in enumerate(self.follow_list):
             (x_object, x_var, x_data) = x_tuple
             (y_object, y_var, y_data, units_scale) = y_tuple

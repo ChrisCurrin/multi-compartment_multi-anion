@@ -106,8 +106,25 @@ class Compartment(TimeMixin):
         self.L = self.w / (np.pi * self.r ** 2)
 
     def copy(self, name):
+        """
+        Create a new Compartment identical to this one
+        :param name: identifier for the new compartment
+        :return: new Compartment
+        """
         comp = Compartment(name, radius=self.r, length=self.L, pkcc2=self.pkcc2, z=self.z, nai=self.nai, ki=self.ki,
                            cli=self.cli, p=self.p)
+        comp.xi = self.xi
+        # intracellular osmolarity
+        comp.osi = comp.nai + comp.ki + comp.cli + comp.xi
+        # extracellular osmo (fixed)
+        comp.oso = comp.osi
+        comp.xo = comp.oso - clo - ko - nao
+        comp.nao = nao
+        comp.ko = ko
+        comp.clo = clo
+        # extracellular concentration of impermeants (here w/ zo=-1)
+        comp.V = comp.FinvCAr * (comp.nai + (comp.ki + (comp.z * comp.xi) - comp.cli))
+        # pump rate
         return comp
 
     def __getitem__(self, item):
