@@ -8,7 +8,7 @@ import numpy as np
 from constants import F
 from common import RTF
 from common import default_radius, default_length, \
-    clo, ko, nao, \
+    clo, ko, nao, xo_z, oso, \
     default_p, \
     gk, gna, gcl, \
     ck, cna
@@ -21,8 +21,7 @@ class Compartment(TimeMixin):
 
     """
 
-    def __init__(self, name, radius=default_radius, length=default_length, pkcc2=0, z=-1.0, nai=140e-3, ki=2.5e-3,
-                 cli=78.3931e-3, p=default_p):
+    def __init__(self, name, radius=default_radius, length=default_length, pkcc2=0, z=-0.85, nai=50e-3, ki=80e-3, p=default_p, cli=0):
         self.name = name
         self.r = radius  # in um
         self.L = length  # in um
@@ -36,14 +35,14 @@ class Compartment(TimeMixin):
         # na,k,cl,x: intracellular starting concentrations
         self.nai = nai
         self.ki = ki
-        self.cli = cli
+        self.cli = ((oso-self.nai-self.ki)*self.z+self.nai+self.ki)/(1+self.z)
         self.xi = (self.cli - self.ki - self.nai) / self.z
+        if self.xi < 0 or self.cli < 0:
+            raise RuntimeError("Initial choice of either ki or nai resulted in negative concentration of intracellular ion - choose different starting values.")
         # intracellular osmolarity
         self.osi = self.nai + self.ki + self.cli + self.xi
-        # extracellular osmo (fixed)
-        self.oso = self.osi
-        # extracellular concentration of impermeants (here w/ zo=-1)
-        self.xo = self.oso - clo - ko - nao
+        if self.osi != oso:
+            print("Compartment not osmo-neutral")
         self.nao = nao
         self.ko = ko
         self.clo = clo
@@ -94,7 +93,7 @@ class Compartment(TimeMixin):
 
         # update volume
         self.osi = self.nai + self.ki + self.cli + self.xi  # intracellular osmolarity
-        w2 = (self.w * self.osi) / self.oso  # update volume
+        w2 = (self.w * self.osi) / oso  # update volume
 
         # correct ionic concentrations by volume change
         self.nai = (self.nai * self.w) / w2

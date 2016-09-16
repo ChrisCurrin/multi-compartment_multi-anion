@@ -2,7 +2,7 @@
 """
 Created on Mon Aug 22 2016
 Python 3.x targeted
-@author: Chris Currin & Kira Dusterwalt
+@author: Chris Currin & Kira Dusterwald
 """
 from simulator import Simulator
 from compartment import Compartment

@@ -7,7 +7,7 @@ Python 3.x targeted
 
 import numpy as np
 from constants import F, R
-from common import clo, ko, nao, gk, gna, gcl
+from common import clo, ko, nao, gk, gna, gcl, oso
 from simulator import Simulator
 from compartment import Compartment
 import time
@@ -65,8 +65,8 @@ def checkpara(kcc2=0,z=-0.85):
         ti[3].append(comp.cli)
         ti[4].append(comp.xi)
 
-    para = zplm(z,kcc2,comp.oso)
-    
+    para = zplm(z,kcc2,oso)
+
     plt.figure()
     plt.plot(para[0], para[1], 'r', para[0], para[2], 'c', para[0], para[3], 'g', para[0], para[4], 'b', para[0],
              para[5], 'k', T, ti[0], 'ok', T, ti[1], 'oc', T, ti[2], 'or', T, ti[3], 'og', T, ti[4], 'ob')
@@ -75,6 +75,6 @@ def checkpara(kcc2=0,z=-0.85):
     plt.xlabel('log(F.pump rate)')
     plt.ylabel('mV')
     plt.show()
-    return
+    return ti
 
 checkpara()

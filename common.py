@@ -2,7 +2,7 @@
 """
 Created on Mon Aug 22 2016
 Python 3.x targeted
-@author: Chris Currin & Kira Dusterwalt
+@author: Chris Currin & Kira Dusterwald
 """
 from constants import F, R
 
@@ -20,7 +20,10 @@ default_p = 1e-5 / F
 # concentrations
 nao = 138e-3
 clo = 119e-3
-ko = 2.8e-3  # nao,clo,ko: extracellular concentrations (mM converted to M)
+ko = 2.8e-3
+xo = 21.8e-3 # nao,clo,ko,xo: extracellular concentrations (mM converted to M)
+xo_z = xo/2.0
+oso = xo + nao + clo + ko
 # KCC2 strength
 pkcc = 1.0
 
