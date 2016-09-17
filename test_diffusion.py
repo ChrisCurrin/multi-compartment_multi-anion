@@ -9,8 +9,13 @@ class TestDiffusion(TestCase):
     def setUp(self):
         self.sim = simulator.Simulator(False)
         self.comp = SimpleCompartment("c1", pkcc2=0, z=-0.85,
-                                      cli=0.015292947537423218, ki=0.023836660428807395, nai=0.1135388427892471)
+                                      cli=0.015292947537423218,
+                                      ki=0.023836660428807395,
+                                      nai=0.1135388427892471)
         self.comp2 = self.comp.copy("c2")
+        # get a reasonable negative voltage (V=--0.05271)
+        self.comp.cli +=2e-5
+        self.comp2.cli+=2e-5
         self.ion = "cli"
         self.ions = ["cli"]
         D = 1  # um2/ms # == 10-5 * cm2/s
@@ -25,13 +30,15 @@ class TestDiffusion(TestCase):
         comp = self.comp
         comp2 = self.comp2
         ion = self.ion
-        print("before run:\n\t{}:{} \t {}:{}".format(comp.name, round(comp[ion], 5), comp2.name, round(comp2[ion], 5)))
+        print("before run:\nion: \t{}:{} \t {}:{}".format(comp.name, round(comp[ion], 5), comp2.name, round(comp2[ion], 5)))
+        print("\n  V: \t{}:{} \t {}:{}".format(comp.name, round(comp.V, 5), comp2.name, round(comp2.V, 5)))
         self.assertEqual(round(comp[ion], 5), round(comp2[ion], 5))
         sim.run(stop=10, dt=0.001)
-        print("after run:\n\t{}:{} \t {}:{}".format(comp.name, round(comp[ion], 5), comp2.name, round(comp2[ion], 5)))
+        print("after run:\nion: \t{}:{} \t {}:{}".format(comp.name, round(comp[ion], 5), comp2.name, round(comp2[ion], 5)))
+        print("\n  V: \t{}:{} \t {}:{}".format(comp.name, round(comp.V, 5), comp2.name, round(comp2.V, 5)))
         self.assertEqual(round(comp[ion], 5), round(comp2[ion], 5))
         comp.cli += 1e-3
-        comp.ki += 1e-3
+        #comp.ki += 1e-3
         print("value changed\nbefore run:\n\t{}:{} \t {}:{}".format(comp.name, round(comp[ion], 5), comp2.name,
                                                                     round(comp2[ion], 5)))
         self.assertNotEqual(round(comp[ion], 5), round(comp2[ion], 5))
@@ -61,7 +68,7 @@ class TestDiffusion(TestCase):
         :return:
         """
         self.d = OhmDiffusion(self.comp, self.comp2, self.ions, D=self.D)
-        self.run_diffusion(1, True, True)
+        self.run_diffusion(50, True, True)
 
     def test_ohm_diffusion_compartments_complex(self):
         """

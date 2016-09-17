@@ -28,8 +28,10 @@ class Diffusion(TimeMixin):
             drift_b = -1*self.ohms_law(self.comp_b, ion, self.D / _time.dt)
             d_drift = drift_b - drift_a
             j_net = (F + d_drift) * (_time.dt / self.dx)
-            self.comp_a[ion] += j_net
-            self.comp_b[ion] -= j_net
+            simulator.Simulator.get_instance().to_update(self.comp_a, ion, j_net, simulator.UpdateType.CHANGE)
+            simulator.Simulator.get_instance().to_update(self.comp_b, ion, -1*j_net, simulator.UpdateType.CHANGE)
+            # self.comp_a[ion] += j_net
+            # self.comp_b[ion] -= j_net
 
     def ficks_law(self, ion: str, D: float):
         """
@@ -75,9 +77,27 @@ class Diffusion(TimeMixin):
         return -mu*valence(ion)*comp[ion]*(self.dV/self.dx)
 
     def D_to_mu(self, D: float, ion: str):
+        """
+
+        :param D: the diffusion coefficient (dm2/ms)
+        :param ion:
+        :return:
+        """
         return D * q * valence(ion) / (k * T)
 
     def mu_to_D(self, mu: float, ion: str):
+        """
+        D = mu * k * T / (q*z)
+        D is the diffusion coefficient (dm2/ms)
+        mu is mobility
+        k is Boltzman Constant
+        T is temperature in Kelvin
+        q is charge
+        z is valence of ion
+        :param mu:
+        :param ion:
+        :return: D
+        """
         return mu * k*T/(q*valence(ion))
 
     def __getitem__(self, item):

@@ -14,6 +14,7 @@ from common import default_radius, default_length, \
     ck, cna
 from sim_time import TimeMixin, Time
 import simulator
+import time
 
 
 class Compartment(TimeMixin):
@@ -22,6 +23,7 @@ class Compartment(TimeMixin):
     """
 
     def __init__(self, name, radius=default_radius, length=default_length, pkcc2=0, z=-0.85, nai=50e-3, ki=80e-3, p=default_p, cli=0):
+        self.unique_id = str(time.time())
         self.name = name
         self.r = radius  # in um
         self.L = length  # in um
@@ -81,16 +83,34 @@ class Compartment(TimeMixin):
         # jkcc2=sw*gk*pkcc*(K[ctr-2]-Cl[ctr-2])/10000.0 #Doyon
 
         # ionic flux equations
-        # dna,dk,dcl: increase in intracellular ion conc during time step dt
-        dna = -_time.dt * self.Ar * (gna * (self.V - RTF * np.log(self.nao / self.nai)) + cna * self.jp)
-        dk = -_time.dt * self.Ar * (gk * (self.V - RTF * np.log(self.ko / self.ki)) - ck * self.jp + self.jkcc2)
-        dcl = _time.dt * self.Ar * (gcl * (self.V + RTF * np.log(self.clo / self.cli)) - self.jkcc2)
+        # dnai,dki,dcli: increase in intracellular ion conc during time step dt
+        dnai = -_time.dt * self.Ar * (gna * (self.V - RTF * np.log(self.nao / self.nai)) + cna * self.jp)
+        dki = -_time.dt * self.Ar * (gk * (self.V - RTF * np.log(self.ko / self.ki)) - ck * self.jp + self.jkcc2)
+        dcli = _time.dt * self.Ar * (gcl * (self.V + RTF * np.log(self.clo / self.cli)) - self.jkcc2)
 
         # increment concentrations
-        self.nai += dna
-        self.ki += dk
-        self.cli += dcl
+        # self.nai += dna
+        # self.ki += dk
+        # self.cli += dcl
+        UpdateType = simulator.UpdateType
+        simulator.Simulator.get_instance().to_update_multi(self, {
+            'nai': {
+                "value": dnai,
+                "type": UpdateType.CHANGE
+            }, 'ki': {
+                "value": dki,
+                "type": UpdateType.CHANGE
+            }, 'cli': {
+                "value": dcli,
+                "type": UpdateType.CHANGE
+            }
+        })
 
+        simulator.Simulator.get_instance().to_update(self, self.name, self.update_values, UpdateType.FUNCTION)
+
+    def update_values(self):
+        # intracellular osmolarity
+        self.osi = self.nai + self.ki + self.cli + self.xi
         # update volume
         self.osi = self.nai + self.ki + self.cli + self.xi  # intracellular osmolarity
         w2 = (self.w * self.osi) / oso  # update volume
@@ -133,4 +153,4 @@ class Compartment(TimeMixin):
         self.__dict__[key] = value
 
     def __str__(self, *args, **kwargs):
-        return "Compartment: " + str(self.__dict__)
+        return self.name
