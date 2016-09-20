@@ -26,10 +26,13 @@ class Diffusion(TimeMixin):
             drift_a = self.ohms_law(self.comp_a, ion, self.D / _time.dt)
             # negative to account for dV calculated from comp_a to comp_b only (and not comp_b to comp_a)
             drift_b = -1*self.ohms_law(self.comp_b, ion, self.D / _time.dt)
-            d_drift = drift_b - drift_a
+            d_drift = (drift_b + drift_a)
             j_net = (F + d_drift) * (_time.dt / self.dx)
+            #j_net_a = (F + drift_a) * (_time.dt / self.dx)
+            # -F as it is equal but opposite of F w.r.t. comp_a (drift_b has already had this applied above)
+            #j_net_b = (-F + drift_b) * (_time.dt / self.dx)
             simulator.Simulator.get_instance().to_update(self.comp_a, ion, j_net, simulator.UpdateType.CHANGE)
-            simulator.Simulator.get_instance().to_update(self.comp_b, ion, -1*j_net, simulator.UpdateType.CHANGE)
+            simulator.Simulator.get_instance().to_update(self.comp_b, ion, -j_net, simulator.UpdateType.CHANGE)
             # self.comp_a[ion] += j_net
             # self.comp_b[ion] -= j_net
 
@@ -83,7 +86,7 @@ class Diffusion(TimeMixin):
         :param ion:
         :return:
         """
-        return D * q * valence(ion) / (k * T)
+        return D * q * abs(valence(ion)) / (k * T)
 
     def mu_to_D(self, mu: float, ion: str):
         """

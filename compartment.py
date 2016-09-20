@@ -22,7 +22,7 @@ class Compartment(TimeMixin):
 
     """
 
-    def __init__(self, name, radius=default_radius, length=default_length, pkcc2=0, z=-0.85, nai=50e-3, ki=80e-3, p=default_p, cli=0):
+    def __init__(self, name, radius=default_radius, length=default_length, pkcc2=0, z=-0.85, nai=50e-3, ki=80e-3, p=default_p, cli=None):
         self.unique_id = str(time.time())
         self.name = name
         self.r = radius  # in um
@@ -37,7 +37,10 @@ class Compartment(TimeMixin):
         # na,k,cl,x: intracellular starting concentrations
         self.nai = nai
         self.ki = ki
-        self.cli = ((oso-self.nai-self.ki)*self.z+self.nai+self.ki)/(1+self.z)
+        if cli is None:
+            # setting chloride that is osmo- and electro-neutral initially.
+            self.cli = ((oso-self.nai-self.ki)*self.z+self.nai+self.ki)/(1+self.z)
+        self.cli = cli
         self.xi = (self.cli - self.ki - self.nai) / self.z
         if self.xi < 0 or self.cli < 0:
             raise RuntimeError("Initial choice of either ki or nai resulted in negative concentration of intracellular ion - choose different starting values.")
