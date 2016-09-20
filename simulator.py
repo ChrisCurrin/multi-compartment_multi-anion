@@ -5,11 +5,8 @@ Python 3.x targeted
 @author: Chris Currin & Kira Dusterwalt
 """
 from enum import Enum
-from collections import OrderedDict
 import sim_time
-from compartment import Compartment
 import time
-from threading import Timer
 
 
 class UpdateType(Enum):

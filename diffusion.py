@@ -6,11 +6,19 @@ from common import T
 
 
 class Diffusion(TimeMixin):
-    def __init__(self, comp_a: Compartment, comp_b: Compartment, ions: list, D: float):
+    def __init__(self, comp_a: Compartment, comp_b: Compartment, ions: dict):
+        """
+        Create a connection between compartments that allows for diffusion of ions.
+        :param comp_a:
+        :param comp_b:
+        :param ions: dictionary must be of the form {ion: D}, where
+                ion is the molecule of interest (str) (e.g. 'cli')
+                D is the diffusion coefficient for that ion (float) (dm2/ms)
+        """
         self.comp_a = comp_a
         self.comp_b = comp_b
         self.ions = ions
-        self.D = D
+        # difference in distance between compartment midpoints
         self.dx = self.comp_a.L / 2 + self.comp_b.L / 2
         # register component with simulator
         simulator.Simulator.get_instance().register_compartment(self)
@@ -19,19 +27,17 @@ class Diffusion(TimeMixin):
         """
         Diffusion equation between compartments for each time step
         """
-        for ion in self.ions:
+        for ion, D in self.ions:
             # F in M/ms * dm
-            F = self.ficks_law(ion, self.D / _time.dt)
+            F = self.ficks_law(ion, D / _time.dt)
             # drift in M/ms dm
-            drift_a = self.ohms_law(self.comp_a, ion, self.D / _time.dt)
+            drift_a = self.ohms_law(self.comp_a, ion, D / _time.dt)
             # negative to account for dV calculated from comp_a to comp_b only (and not comp_b to comp_a)
-            drift_b = -1*self.ohms_law(self.comp_b, ion, self.D / _time.dt)
-            d_drift = (drift_b + drift_a)
+            drift_b = -1*self.ohms_law(self.comp_b, ion, D / _time.dt)
+            d_drift = (drift_a + drift_b)
             j_net = (F + d_drift) * (_time.dt / self.dx)
-            #j_net_a = (F + drift_a) * (_time.dt / self.dx)
-            # -F as it is equal but opposite of F w.r.t. comp_a (drift_b has already had this applied above)
-            #j_net_b = (-F + drift_b) * (_time.dt / self.dx)
             simulator.Simulator.get_instance().to_update(self.comp_a, ion, j_net, simulator.UpdateType.CHANGE)
+            # -j_net for comp_b as it is equal but opposite of j_net w.r.t. comp_a
             simulator.Simulator.get_instance().to_update(self.comp_b, ion, -j_net, simulator.UpdateType.CHANGE)
             # self.comp_a[ion] += j_net
             # self.comp_b[ion] -= j_net
@@ -75,11 +81,13 @@ class Diffusion(TimeMixin):
             if D is None:
                 raise RuntimeError("must specify at least one of D or mu in ohms_law method")
             mu = self.D_to_mu(D, ion)
-        self.dV = self.comp_a.V - self.comp_b.V
-        self.dx = self.comp_a.L / 2 + self.comp_b.L / 2
-        return -mu*valence(ion)*comp[ion]*(self.dV/self.dx)
+        dV = self.comp_a.V - self.comp_b.V
+        # dx is calculated in init
+        # self.dx = self.comp_a.L / 2 + self.comp_b.L / 2
+        return -mu*valence(ion)*comp[ion]*(dV/self.dx)
 
-    def D_to_mu(self, D: float, ion: str):
+    @staticmethod
+    def D_to_mu(D: float, ion: str):
         """
 
         :param D: the diffusion coefficient (dm2/ms)
@@ -88,7 +96,8 @@ class Diffusion(TimeMixin):
         """
         return D * q * abs(valence(ion)) / (k * T)
 
-    def mu_to_D(self, mu: float, ion: str):
+    @staticmethod
+    def mu_to_D(mu: float, ion: str):
         """
         D = mu * k * T / (q*z)
         D is the diffusion coefficient (dm2/ms)
