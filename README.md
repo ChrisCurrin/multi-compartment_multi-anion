@@ -23,11 +23,8 @@ This shall be extended to a multi-compartmental model, and visualised using Open
 
 ## Chris
 * OpenGL
-* Connect the compartments using Fick's law and Nernst equation OR Nersnt-Planck equation
-* Grow compartments (length)
 
 ## General
-* Timestep?
 
 # Timeline
 * Finish: Dec 2016
