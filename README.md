@@ -9,7 +9,7 @@ This shall be extended to a multi-compartmental model, and visualised using Open
 
 # Task list (updated 20 Sept)
 
-# Whoever gets there first
+## Whoever gets there first
 * Check that diffusion of all ions works (2 compartment)
 * Diffusion constants for Na, K, Cl (see equation_flow.pdf)
 * Diffusion with different pump rates in adjacent compartments
