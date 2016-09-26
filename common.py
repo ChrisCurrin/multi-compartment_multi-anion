@@ -9,19 +9,19 @@ from constants import F, R
 T = 25 + 273.15
 RTF = R*T / F
 # permeabilities
-gna = 3e-9
+gna = 5e-9
 gk = 5e-8
-gcl = 5e-8  # gna,gk,gcl: conductances in mS/cm^2 conv to S/dm^2 (10^-3/10^-2) - corrected for neuron
+gcl = 1e-8  # gna,gk,gcl: conductances in mS/cm^2 conv to S/dm^2 (10^-3/10^-2) - corrected for neuron
 # stochiometries
 ck = 2
 cna = 3  # cna,ck: pump (ATPase) stoichiometries
 # pump rates
-default_p = 1e-5 / F
+default_p = 1e-2 / F
 # concentrations
-nao = 138e-3
+nao = 145e-3
 clo = 119e-3
-ko = 2.8e-3
-xo = 21.8e-3 # nao,clo,ko,xo: extracellular concentrations (mM converted to M)
+ko = 3.5e-3
+xo = -1.0*(clo-nao-ko) # nao,clo,ko,xo: extracellular concentrations (mM converted to M)
 xo_z = xo/2.0
 oso = xo + nao + clo + ko
 # KCC2 strength
