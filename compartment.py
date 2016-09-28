@@ -5,6 +5,8 @@ Python 3.x targeted
 @author: Chris Currin & Kira Dusterwald
 """
 import numpy as np
+import copy
+import deferred_update
 from constants import F
 from common import RTF
 from common import default_radius, default_length, \
@@ -22,7 +24,8 @@ class Compartment(TimeMixin):
 
     """
 
-    def __init__(self, name, radius=default_radius, length=default_length, pkcc2=0, z=-0.85, nai=50e-3, ki=80e-3, p=default_p, cli=None):
+    def __init__(self, name, radius=default_radius, length=default_length, pkcc2=0, z=-0.85, nai=50e-3, ki=80e-3,
+                 p=default_p, cli=None):
         self.unique_id = str(time.time())
         self.name = name
         self.r = radius  # in um
@@ -39,15 +42,17 @@ class Compartment(TimeMixin):
         self.ki = ki
         if cli is None:
             # setting chloride that is osmo- and electro-neutral initially.
-            self.cli = ((oso-self.nai-self.ki)*self.z+self.nai+self.ki)/(1+self.z)
-        self.cli = cli
+            self.cli = ((oso - self.nai - self.ki) * self.z + self.nai + self.ki) / (1 + self.z)
+        else:
+            self.cli = cli
         self.xi = (self.cli - self.ki - self.nai) / self.z
         if self.xi < 0 or self.cli < 0:
-            raise RuntimeError("Initial choice of either ki or nai resulted in negative concentration of intracellular ion - choose different starting values.")
+            raise RuntimeError("""Initial choice of either ki or nai resulted in negative concentration of
+                                    intracellular ion - choose different starting values.""")
         # intracellular osmolarity
         self.osi = self.nai + self.ki + self.cli + self.xi
         if self.osi != oso:
-            print("Compartment not osmo-neutral")
+            print("Compartment {} not osmo-neutral".format(self.name))
         self.nao = nao
         self.ko = ko
         self.clo = clo
@@ -95,23 +100,27 @@ class Compartment(TimeMixin):
         # self.nai += dna
         # self.ki += dk
         # self.cli += dcl
-        UpdateType = simulator.UpdateType
+        UpdateType = deferred_update.UpdateType
         simulator.Simulator.get_instance().to_update_multi(self, {
-            'nai': {
+            'nai'   : {
                 "value": dnai,
-                "type": UpdateType.CHANGE
-            }, 'ki': {
+                "type" : UpdateType.CHANGE
+            }, 'ki' : {
                 "value": dki,
-                "type": UpdateType.CHANGE
+                "type" : UpdateType.CHANGE
             }, 'cli': {
                 "value": dcli,
-                "type": UpdateType.CHANGE
+                "type" : UpdateType.CHANGE
             }
         })
 
         simulator.Simulator.get_instance().to_update(self, self.name, self.update_values, UpdateType.FUNCTION)
 
     def update_values(self):
+        """
+        Method for applying deferred update for multiple variables, specifically where there are multiple steps and
+        variables rely on other variables. This is done after variable (deferred) updates in step.
+        """
         # intracellular osmolarity
         self.osi = self.nai + self.ki + self.cli + self.xi
         # update volume
@@ -138,15 +147,26 @@ class Compartment(TimeMixin):
         comp.xi = self.xi
         # intracellular osmolarity
         comp.osi = comp.nai + comp.ki + comp.cli + comp.xi
-        # extracellular osmo (fixed)
-        comp.oso = comp.osi
-        comp.xo = comp.oso - clo - ko - nao
         comp.nao = nao
         comp.ko = ko
         comp.clo = clo
         # extracellular concentration of impermeants (here w/ zo=-1)
         comp.V = comp.FinvCAr * (comp.nai + (comp.ki + (comp.z * comp.xi) - comp.cli))
         # pump rate
+        return comp
+
+    def deepcopy(self, name):
+        """
+        Create a new Compartment identical to this one.
+        To be compared against copy() above
+        :param name: identifier for the new compartment
+        :return: new Compartment
+        """
+        comp = copy.deepcopy(self)
+        comp.name = name
+        comp.unique_id = str(time.time())
+        # register component with simulator
+        simulator.Simulator.get_instance().register_compartment(comp)
         return comp
 
     def __getitem__(self, item):
@@ -157,3 +177,9 @@ class Compartment(TimeMixin):
 
     def __str__(self, *args, **kwargs):
         return self.name
+
+    def __repr__(self):
+        return str(self.__dict__)
+        # return """Compartment({0},radius={1}, length={2}, pkcc2={3}, z={4}, nai={5}, ki={6},
+        #          p={7}, cli={8})
+        # """.format(self.name,self.r,self.L,self.pkcc2,self.z,self.nai,self.ki,self.p,self.cli)

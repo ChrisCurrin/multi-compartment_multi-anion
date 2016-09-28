@@ -3,6 +3,7 @@ from simulator import Simulator
 from compartment import Compartment
 import time
 
+
 class TestSimulator(TestCase):
     def setUp(self):
         self.sim = Simulator.get_instance()
@@ -49,13 +50,13 @@ class TestSimulator(TestCase):
 
         v = self.sim.gui().add_graph()
         v.add_voltage(comp, line_style='k')  # black
-        stop=5
-        l = [0.1,1,2,5,10,20]
+        stop = 5
+        l = [0.1, 1, 2, 5, 10, 20]
         l.reverse()
         for pui in l:
             t_before = time.time()
             self.sim.run(stop=stop, plot_update_interval=pui, data_collect_interval=0.1, block_after=False)
-            print("time taken for update interval of {}: {}".format(pui,time.time()-t_before))
+            print("time taken for update interval of {}: {}".format(pui, time.time() - t_before))
         pass
 
     def test_register_compartment(self):
