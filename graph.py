@@ -18,6 +18,7 @@ class Graph(object):
         self.fig.canvas.mpl_connect('close_event', self.handle_close)
         self.ax = self.fig.add_subplot(111)
         self.ax.hold()
+        self.background = self.fig.canvas.copy_from_bbox(self.ax.bbox)
         plt.hold()
         self.follow_list = []
 
@@ -107,9 +108,14 @@ class Graph(object):
             (y_object, y_var, y_data, units_scale) = y_tuple
             line.set_xdata(x_data)
             line.set_ydata(y_data)
+            self.fig.canvas.restore_region(self.background)
+            # redraw just the points
+            self.ax.draw_artist(line)
+            # fill in the axes rectangle
+            self.fig.canvas.blit(self.ax.bbox)
         self.ax.relim()
         self.ax.autoscale_view()
-        plt.pause(0.001)
+        # plt.pause(0.001)
 
     def handle_close(self, evt):
         """

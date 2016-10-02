@@ -29,7 +29,7 @@ def main():
     # soma.xi:0.13254866213689095
 
     v = gui.add_graph()
-    v.add_voltage(comp, line_style='k', units_scale=1000, plot_units='mV')  # black
+    v.add_voltage(comp, line_style='k', y_units_scale=1000, y_plot_units='mV')  # black
     g = gui.add_graph()
     g.add_ion_conc(comp, "cli", line_style='g')  # green
     g.add_ion_conc(comp, "ki", line_style='c')  # cyan
@@ -58,7 +58,7 @@ def main():
     print("Ion concentrations")
     for ion in ["V", "cli", "ki", "nai", "xi"]:
         print("{}.{}:{} \t {}.{}:{} ".format(comp.name, ion, comp[ion], comp2.name, ion, comp2[ion]))
-    v.add_voltage(comp2, line_style='--k', units_scale=1000, plot_units='mV')  # black
+    v.add_voltage(comp2, line_style='--k', y_units_scale=1000, y_plot_units='mV')  # black
     g.add_ion_conc(comp2, "cli", line_style='--g')  # green
     g.add_ion_conc(comp2, "ki", line_style='--c')  # cyan
     g.add_ion_conc(comp2, "nai", line_style='--r')  # red
@@ -70,7 +70,7 @@ def main():
         .add_ion_conc(comp, "w", line_style='b') \
         .add_ion_conc(comp2, "w", line_style='b--')
     # sim.run(stop=0.1, dt=dt, plot_update_interval=dt, data_collect_interval=dt)
-    sim.run(stop=500, dt=dt, plot_update_interval=50, data_collect_interval=0.025)
+    sim.run(stop=50, dt=dt, plot_update_interval=50, data_collect_interval=0.025, block_after=True)
     print("Ion concentrations")
     for ion in ["cli", "ki", "nai", "xi"]:
         print("{}.{}:{} \t {}.{}:{} ".format(comp.name, ion, comp[ion], comp2.name, ion, comp2[ion]))

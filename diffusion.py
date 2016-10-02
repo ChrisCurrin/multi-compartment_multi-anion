@@ -28,7 +28,7 @@ class Diffusion(TimeMixin):
         """
         Diffusion equation between compartments for each time step
         """
-        for ion, D in self.ions:
+        for ion, D in self.ions.items():
             # F in M/ms * dm
             F = self.ficks_law(ion, D / _time.dt)
             # drift in M/ms dm
