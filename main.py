@@ -46,12 +46,14 @@ def main():
     comp2.ki -= 1e-3
 
     # set diffusion value
-    cli_D = 1  # um2/ms
-    cli_D *= 1e-5 ** 2  # um2 to dm2 (D in dm2/ms)
-    ki_D = 1  # um2/ms
+    cli_D = 2.03  # um2/ms
+    cli_D *=1e-5 ** 2  # um2 to dm2 (D in dm2/ms)
+    ki_D = 1.96  # um2/ms
     ki_D *= 1e-5 ** 2  # um2 to dm2 (D in dm2/ms)
+    nai_D = 1.33
+    nai_D *= 1e-5 ** 2
     # create diffusion connection
-    diffusion_object = Diffusion(comp, comp2, ions={'cli': cli_D, 'ki': ki_D})
+    diffusion_object = Diffusion(comp, comp2, ions={'cli': cli_D, 'ki': ki_D, 'nai':nai_D})
 
     print(diffusion_object.dx)
     print(diffusion_object.ficks_law("cli", D=cli_D) * dt / diffusion_object.dx)  # (M * dm) to (mM * um) per ms
