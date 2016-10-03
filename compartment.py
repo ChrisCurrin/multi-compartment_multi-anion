@@ -25,7 +25,7 @@ class Compartment(TimeMixin):
     """
 
     def __init__(self, name, radius=default_radius, length=default_length, pkcc2=0, z=-0.85, nai=50e-3, ki=80e-3,
-                 p=default_p, cli=None):
+                 p=default_p, cli=None, gx=0e-9):
         self.unique_id = str(time.time())
         self.name = name
         self.r = radius  # in um
@@ -46,6 +46,7 @@ class Compartment(TimeMixin):
         else:
             self.cli = cli
         self.xi = (self.cli - self.ki - self.nai) / self.z
+        self.gx=gx
         if self.xi < 0 or self.cli < 0:
             raise RuntimeError("""Initial choice of either ki or nai resulted in negative concentration of
                                     intracellular ion - choose different starting values.""")
@@ -91,10 +92,11 @@ class Compartment(TimeMixin):
         # jkcc2=sw*gk*pkcc*(K[ctr-2]-Cl[ctr-2])/10000.0 #Doyon
 
         # ionic flux equations
-        # dnai,dki,dcli: increase in intracellular ion conc during time step dt
+        # dnai,dki,dcli,dxi: increase in intracellular ion conc during time step dt
         dnai = -_time.dt * self.Ar * (gna * (self.V - RTF * np.log(self.nao / self.nai)) + cna * self.jp)
         dki = -_time.dt * self.Ar * (gk * (self.V - RTF * np.log(self.ko / self.ki)) - ck * self.jp + self.jkcc2)
         dcli = _time.dt * self.Ar * (gcl * (self.V + RTF * np.log(self.clo / self.cli)) - self.jkcc2)
+        dxi = _time.dt * self.Ar * (self.gx * (self.V - RTF / self.z * np.log(xo_z / self.xi)))
 
         # increment concentrations
         # self.nai += dna
@@ -110,6 +112,9 @@ class Compartment(TimeMixin):
                 "type" : UpdateType.CHANGE
             }, 'cli': {
                 "value": dcli,
+                "type" : UpdateType.CHANGE
+            }, 'xi': {
+                "value": dxi,
                 "type" : UpdateType.CHANGE
             }
         })
