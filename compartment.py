@@ -24,8 +24,8 @@ class Compartment(TimeMixin):
 
     """
 
-    def __init__(self, name, radius=default_radius, length=default_length, pkcc2=0, z=-0.85, nai=50e-3, ki=80e-3,
-                 p=default_p, cli=None, gx=0e-9):
+    def __init__(self, name, radius=default_radius, length=default_length, pkcc2=1e-8, z=-0.85, nai=50e-3, ki=80e-3,
+                 p=default_p, cli=None):
         self.unique_id = str(time.time())
         self.name = name
         self.r = radius  # in um
@@ -46,7 +46,10 @@ class Compartment(TimeMixin):
         else:
             self.cli = cli
         self.xi = (self.cli - self.ki - self.nai) / self.z
-        self.gx=gx
+
+        # default conductance of impermeant anions
+        self.gx=0e-9
+        
         if self.xi < 0 or self.cli < 0:
             raise RuntimeError("""Initial choice of either ki or nai resulted in negative concentration of
                                     intracellular ion - choose different starting values.""")
@@ -69,6 +72,12 @@ class Compartment(TimeMixin):
         # register component with simulator
         simulator.Simulator.get_instance().register_compartment(self)
 
+        # delta(anions of a fixed charge)
+        self.an=False
+        self.xm=0
+        self.xmz=self.z
+        self.xz=self.z
+
     def step(self, _time: Time = None):
         """
         perform a time step for the compartment
@@ -84,19 +93,28 @@ class Compartment(TimeMixin):
         if _time is None:
             raise ValueError("{} has no time object specified".format(self.__class__.__name__))
         # update voltage
-        self.V = self.FinvCAr * (self.nai + self.ki - self.cli + self.z * self.xi)
+        self.V = self.FinvCAr * (self.nai + self.ki - self.cli + self.z * (self.xi+self.xm))
         # update cubic pump rate (dependent on sodium gradient)
         self.jp = self.p * (self.nai / self.nao) ** 3
         # kcc2
-        self.jkcc2 = (gk * self.pkcc2 * (self.ki * self.clo - self.ki * self.cli))  # Fraser and Huang
-        # jkcc2=sw*gk*pkcc*(K[ctr-2]-Cl[ctr-2])/10000.0 #Doyon
+        #self.jkcc2 = (gk * self.pkcc2 * (self.ki * self.clo - self.ki * self.cli))  # Fraser and Huang
+        self.jkcc2=gk*self.pkcc2*(self.ki-self.cli)/10000.0 #Doyon
+
+        if self.an==True:
+            self.xm=self.xi/2.0
+            self.xi=self.xm
+            self.xmz=self.z-0.15
+            self.xz=self.z+0.15
+            self.an=False
+
+        self.z=(self.xmz*self.xm+self.xz*self.xi)/(self.xm+self.xi)
 
         # ionic flux equations
         # dnai,dki,dcli,dxi: increase in intracellular ion conc during time step dt
         dnai = -_time.dt * self.Ar * (gna * (self.V - RTF * np.log(self.nao / self.nai)) + cna * self.jp)
         dki = -_time.dt * self.Ar * (gk * (self.V - RTF * np.log(self.ko / self.ki)) - ck * self.jp + self.jkcc2)
         dcli = _time.dt * self.Ar * (gcl * (self.V + RTF * np.log(self.clo / self.cli)) - self.jkcc2)
-        dxi = _time.dt * self.Ar * (self.gx * (self.V - RTF / self.z * np.log(xo_z / self.xi)))
+        dxi = _time.dt * self.Ar * (self.gx * (self.V - RTF / self.xz * np.log(xo_z / self.xi)))
 
         # increment concentrations
         # self.nai += dna
@@ -127,9 +145,8 @@ class Compartment(TimeMixin):
         variables rely on other variables. This is done after variable (deferred) updates in step.
         """
         # intracellular osmolarity
-        self.osi = self.nai + self.ki + self.cli + self.xi
+        self.osi = self.nai + self.ki + self.cli + self.xi +self.xm
         # update volume
-        self.osi = self.nai + self.ki + self.cli + self.xi  # intracellular osmolarity
         w2 = (self.w * self.osi) / oso  # update volume
 
         # correct ionic concentrations by volume change
@@ -137,6 +154,7 @@ class Compartment(TimeMixin):
         self.ki = (self.ki * self.w) / w2
         self.cli = (self.cli * self.w) / w2
         self.xi = (self.xi * self.w) / w2
+        self.xm = (self.xm * self.w) / w2
         self.w = w2
         # affect volume change into length change
         self.L = self.w / (np.pi * self.r ** 2)

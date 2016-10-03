@@ -9,8 +9,8 @@ from compartment import Compartment
 from diffusion import Diffusion
 
 
-def main():
-    print("main")
+def anions():
+    print("main_anions")
     sim = Simulator()
     gui = sim.gui()
     dt = 0.001
@@ -68,17 +68,26 @@ def main():
     #update anion conductance
     
     comp2.gx=1e-9
-    sim.run(stop=50, dt=dt, plot_update_interval=50, data_collect_interval=0.025, block_after=False)
+    #comp2.an=True
+    if comp2.an==True:
+        z_graph = gui.add_graph() \
+            .add_ion_conc(comp, "z",line_style='p-')\
+            .add_ion_conc(comp2,"z",line_style='p--') #obviously, z is not an ion!
+        
+    sim.run(stop=100, dt=dt, plot_update_interval=50, data_collect_interval=0.025, block_after=False)
     print("Ion concentrations after anion flux from the dendritic compartment")
     for ion in ["cli", "ki", "nai", "xi"]:
         print("{}.{}:{} \t {}.{}:{} ".format(comp.name, ion, comp[ion], comp2.name, ion, comp2[ion]))
 
+    input("Press Enter to continue...")
+
     comp2.gx=0e-9
+
+    #comp2.p=1e-4
     sim.run(stop=50, dt=dt, plot_update_interval=50, data_collect_interval=0.025, block_after=True)
     print("Ion concentrations after anion flux from the dendritic compartment is halted")
     for ion in ["cli", "ki", "nai", "xi"]:
         print("{}.{}:{} \t {}.{}:{} ".format(comp.name, ion, comp[ion], comp2.name, ion, comp2[ion]))
+    return()
 
-
-if __name__ == "__main__":
-    main()
+anions()
