@@ -34,8 +34,6 @@ def main():
     # soma.nai:0.11094252293794836
     # soma.xi:0.13254866213689095
 
-
-
     print("Ion concentrations")
     for ion in ["cli", "ki", "nai", "xi"]:
         print("{}.{}:{}".format(comp.name, ion, comp[ion]))
@@ -72,7 +70,7 @@ def main():
         .add_ion_conc(comp, "w", line_style='b') \
         .add_ion_conc(comp2, "w", line_style='b--')
     # sim.run(stop=0.1, dt=dt, plot_update_interval=dt, data_collect_interval=dt)
-    sim.run(start=50, stop=100, dt=dt, plot_update_interval=50, data_collect_interval=0.025, block_after=True)
+    sim.run(continuefor=50, dt=dt, plot_update_interval=50, data_collect_interval=0.025, block_after=True)
     print("Ion concentrations")
     for ion in ["cli", "ki", "nai", "xi"]:
         print("{}.{}:{} \t {}.{}:{} ".format(comp.name, ion, comp[ion], comp2.name, ion, comp2[ion]))

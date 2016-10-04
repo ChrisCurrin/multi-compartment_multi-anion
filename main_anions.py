@@ -19,15 +19,6 @@ def anions():
                        , cli=0.01819925284075134,
                        ki=0.019909567493822927,
                        nai=0.11094226350779378)
-
-    # find steady-state values of ions
-    sim.run(stop=50, dt=0.001, plot_update_interval=500, data_collect_interval=500, block_after=False)
-    # values from steady-state
-    # soma.cli:0.01819948776551597
-    # soma.ki:0.019909327159644736
-    # soma.nai:0.11094252293794836
-    # soma.xi:0.13254866213689095
-
     v = gui.add_graph()
     v.add_voltage(comp, line_style='k', y_units_scale=1000, y_plot_units='mV')  # black
     g = gui.add_graph()
@@ -35,6 +26,15 @@ def anions():
     g.add_ion_conc(comp, "ki", line_style='c')  # cyan
     g.add_ion_conc(comp, "nai", line_style='r')  # red
     g.add_ion_conc(comp, "xi", line_style='b')  # blue
+    # find steady-state values of ions
+    sim.run(stop=50, dt=0.001, plot_update_interval=500, data_collect_interval=5, block_after=False)
+    # values from steady-state
+    # soma.cli:0.01819948776551597
+    # soma.ki:0.019909327159644736
+    # soma.nai:0.11094252293794836
+    # soma.xi:0.13254866213689095
+
+
 
     print("Ion concentrations")
     for ion in ["cli", "ki", "nai", "xi"]:
@@ -67,24 +67,22 @@ def anions():
 
     # update anion conductance
 
-    comp2.gx = 1e-9
-    # comp2.an=True
+    # comp2.gx = 1e-9
+    # comp2.an = True
     if comp2.an:
         z_graph = gui.add_graph() \
-            .add_ion_conc(comp, "z", line_style='p-') \
-            .add_ion_conc(comp2, "z", line_style='p--')  # obviously, z is not an ion!
+            .add_ion_conc(comp, "z", line_style='m') \
+            .add_ion_conc(comp2, "z", line_style='m--')  # obviously, z is not an ion!
 
-    sim.run(stop=100, dt=dt, plot_update_interval=50, data_collect_interval=0.025, block_after=False)
+    sim.run(continuefor=100, dt=dt, plot_update_interval=50, data_collect_interval=0.025, block_after=False)
     print("Ion concentrations after anion flux from the dendritic compartment")
     for ion in ["cli", "ki", "nai", "xi"]:
         print("{}.{}:{} \t {}.{}:{} ".format(comp.name, ion, comp[ion], comp2.name, ion, comp2[ion]))
 
-    input("Press Enter to continue...")
-
     comp2.gx = 0e-9
 
-    # comp2.p=1e-4
-    sim.run(stop=50, dt=dt, plot_update_interval=50, data_collect_interval=0.025, block_after=True)
+    comp2.p=1e-4
+    sim.run(continuefor=50, dt=dt, plot_update_interval=50, data_collect_interval=0.025, block_after=True)
     print("Ion concentrations after anion flux from the dendritic compartment is halted")
     for ion in ["cli", "ki", "nai", "xi"]:
         print("{}.{}:{} \t {}.{}:{} ".format(comp.name, ion, comp[ion], comp2.name, ion, comp2[ion]))

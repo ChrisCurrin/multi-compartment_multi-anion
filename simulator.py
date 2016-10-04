@@ -62,13 +62,13 @@ class Simulator(object):
         return cls.__single
 
     @classmethod
-    def run(cls, start: float = 0, stop: float = None, dt: float = None, plot_update_interval: float = 100,
+    def run(cls, continuefor: float = None, stop: float = None, dt: float = None, plot_update_interval: float = 100,
             data_collect_interval: float = None, block_after=True):
         """
         Run a time-based simulation.
         Each time-registered object is moved forward by dt
 
-        :param start: time to start simulation
+        :param continuefor: how long simulation should continue for
         :param stop: time to stop simulation
         :param dt: time step to use for simulation run
         :param plot_update_interval: frequency to update graphs (in ms)
@@ -79,6 +79,8 @@ class Simulator(object):
         # assign default values if not specified
         if stop is None:
             stop = cls.__time.stop
+        if continuefor is not None:
+            stop = cls.__time.time + continuefor
         if dt is None:
             dt = cls.__time.dt
         if data_collect_interval is None:
@@ -88,15 +90,15 @@ class Simulator(object):
         # create variables for faster processing during loop
         data_collect_interval_dt = (data_collect_interval / dt)
         plot_update_interval_dt = (plot_update_interval / dt)
-        print("run from {0} until {1} with time step of {2} ".format(start, stop, dt))
+        print("run from {0} until {1} with time step of {2} ".format(cls.__time.time, stop, dt))
         # get state ready for run
         cls.run_done = False
-        if start == 0:
+        if continuefor is None:
             cls.__time.reset()
             cls.clear_graphs()
         time.clock()
         # go through a simulation
-        for t in range(int(round(start / dt) + 1), int(round(stop / dt)) + 1):
+        for t in range(int(round(cls.__time.time / dt) + 1), int(round(stop / dt)) + 1):
             if t % data_collect_interval_dt == 0:
                 cls.update_graphs()
             if t % plot_update_interval_dt == 0:
