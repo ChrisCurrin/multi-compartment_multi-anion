@@ -51,7 +51,7 @@ class TestCompartment(TestCase):
     def test_update_values(self):
         prev_L = self.comp.L
         self.comp.update_values()
-        self.assertNotEqual(prev_L,self.comp.L)
+        self.assertNotEqual(prev_L, self.comp.L)
 
     def test_copy(self):
 

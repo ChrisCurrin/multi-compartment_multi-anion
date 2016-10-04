@@ -95,7 +95,8 @@ def plm(p, graph):
         dna = -dt * Ar * (gna * (V - R * np.log(nao / na)) + cna * jp)
         dk = -dt * Ar * (gk * (V - R * np.log(ko / k)) - ck * jp + jkcc2 * sw)
         dcl = dt * Ar * (gcl * (
-        V + R * np.log(clo / cl)) - jkcc2 * sw)  # dna,dk,dcl: increase in intracellular ion conc during time step dt
+            V + R * np.log(
+                clo / cl)) - jkcc2 * sw)  # dna,dk,dcl: increase in intracellular ion conc during time step dt
         na += dna
         k += dk
         cl += dcl  # increment concentrations

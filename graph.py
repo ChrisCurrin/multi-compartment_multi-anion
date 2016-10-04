@@ -2,7 +2,7 @@
 """
 Created on Mon Aug 22 2016
 Python 3.x targeted
-@author: Chris Currin & Kira Dusterwalt
+@author: Chris Currin & Kira Dusterwald
 """
 import matplotlib.pyplot as plt
 
@@ -22,7 +22,8 @@ class Graph(object):
         plt.hold()
         self.follow_list = []
 
-    def add_var(self, x_object: any, x_var: str, y_object: any, y_var: str, line_style: str = None, y_units_scale: float = 1.0, y_plot_units:str = None):
+    def add_var(self, x_object: any, x_var: str, y_object: any, y_var: str, line_style: str = None,
+                y_units_scale: float = 1.0, y_plot_units: str = None):
         """
         Add variables to be plotted.
         For each variable tracked, place the object's variable value in a list.
@@ -40,8 +41,8 @@ class Graph(object):
         :return: self, for chaining
         """
         try:
-            assert x_object[x_var]
-            assert y_object[y_var]
+            assert x_object[x_var] or x_object[x_var] == 0
+            assert y_object[y_var] or y_object[y_var] == 0
         except KeyError:
             print("variable {} or {} not present in {}".format(x_var, y_var, x_object))
         else:
@@ -95,7 +96,7 @@ class Graph(object):
             (x_object, x_var, x_data) = x_tuple
             (y_object, y_var, y_data, units_scale) = y_tuple
             x_data.append(x_object[x_var])
-            y_data.append(y_object[y_var]*units_scale)
+            y_data.append(y_object[y_var] * units_scale)
 
     def plot_graph(self):
         """

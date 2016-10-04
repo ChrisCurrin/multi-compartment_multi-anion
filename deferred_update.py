@@ -16,6 +16,7 @@ class DeferredUpdate(object):
       This is useful if the existing value is required by another object until the end of the time step.
 
     """
+
     def __init__(self, obj, var, value, update_type: UpdateType):
         self.obj = obj
         self.var = var

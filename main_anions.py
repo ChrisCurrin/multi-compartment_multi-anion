@@ -44,14 +44,14 @@ def anions():
 
     # set diffusion value
     cli_D = 2.03  # um2/ms
-    cli_D *=1e-5 ** 2  # um2 to dm2 (D in dm2/ms)
+    cli_D *= 1e-5 ** 2  # um2 to dm2 (D in dm2/ms)
     ki_D = 1.96  # um2/ms
     ki_D *= 1e-5 ** 2  # um2 to dm2 (D in dm2/ms)
     nai_D = 1.33
     nai_D *= 1e-5 ** 2
-    
+
     # create diffusion connection
-    diffusion_object = Diffusion(comp, comp2, ions={'cli': cli_D, 'ki': ki_D, 'nai':nai_D})
+    diffusion_object = Diffusion(comp, comp2, ions={'cli': cli_D, 'ki': ki_D, 'nai': nai_D})
 
     v.add_voltage(comp2, line_style='--k', y_units_scale=1000, y_plot_units='mV')  # black
     g.add_ion_conc(comp2, "cli", line_style='--g')  # green
@@ -65,15 +65,15 @@ def anions():
         .add_ion_conc(comp, "w", line_style='b') \
         .add_ion_conc(comp2, "w", line_style='b--')
 
-    #update anion conductance
-    
-    comp2.gx=1e-9
-    #comp2.an=True
-    if comp2.an==True:
+    # update anion conductance
+
+    comp2.gx = 1e-9
+    # comp2.an=True
+    if comp2.an:
         z_graph = gui.add_graph() \
-            .add_ion_conc(comp, "z",line_style='p-')\
-            .add_ion_conc(comp2,"z",line_style='p--') #obviously, z is not an ion!
-        
+            .add_ion_conc(comp, "z", line_style='p-') \
+            .add_ion_conc(comp2, "z", line_style='p--')  # obviously, z is not an ion!
+
     sim.run(stop=100, dt=dt, plot_update_interval=50, data_collect_interval=0.025, block_after=False)
     print("Ion concentrations after anion flux from the dendritic compartment")
     for ion in ["cli", "ki", "nai", "xi"]:
@@ -81,13 +81,14 @@ def anions():
 
     input("Press Enter to continue...")
 
-    comp2.gx=0e-9
+    comp2.gx = 0e-9
 
-    #comp2.p=1e-4
+    # comp2.p=1e-4
     sim.run(stop=50, dt=dt, plot_update_interval=50, data_collect_interval=0.025, block_after=True)
     print("Ion concentrations after anion flux from the dendritic compartment is halted")
     for ion in ["cli", "ki", "nai", "xi"]:
         print("{}.{}:{} \t {}.{}:{} ".format(comp.name, ion, comp[ion], comp2.name, ion, comp2[ion]))
-    return()
+    return ()
+
 
 anions()

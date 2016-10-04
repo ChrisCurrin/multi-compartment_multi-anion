@@ -48,8 +48,8 @@ class Compartment(TimeMixin):
         self.xi = (self.cli - self.ki - self.nai) / self.z
 
         # default conductance of impermeant anions
-        self.gx=0e-9
-        
+        self.gx = 0e-9
+
         if self.xi < 0 or self.cli < 0:
             raise RuntimeError("""Initial choice of either ki or nai resulted in negative concentration of
                                     intracellular ion - choose different starting values.""")
@@ -68,15 +68,18 @@ class Compartment(TimeMixin):
         self.V = self.FinvCAr * (self.nai + (self.ki + (self.z * self.xi) - self.cli))
         # pump rate
         self.jp = self.p * (self.nai / nao) ** 3
+        # kcc2
+        # self.jkcc2 = (gk * self.pkcc2 * (self.ki * self.clo - self.ki * self.cli))  # Fraser and Huang
+        self.jkcc2 = gk * self.pkcc2 * (self.ki - self.cli) / 10000.0  # Doyon
 
         # register component with simulator
         simulator.Simulator.get_instance().register_compartment(self)
 
         # delta(anions of a fixed charge)
-        self.an=False
-        self.xm=0
-        self.xmz=self.z
-        self.xz=self.z
+        self.an = False
+        self.xm = 0
+        self.xmz = self.z
+        self.xz = self.z
 
     def step(self, _time: Time = None):
         """
@@ -93,21 +96,21 @@ class Compartment(TimeMixin):
         if _time is None:
             raise ValueError("{} has no time object specified".format(self.__class__.__name__))
         # update voltage
-        self.V = self.FinvCAr * (self.nai + self.ki - self.cli + self.z * (self.xi+self.xm))
+        self.V = self.FinvCAr * (self.nai + self.ki - self.cli + self.z * (self.xi + self.xm))
         # update cubic pump rate (dependent on sodium gradient)
         self.jp = self.p * (self.nai / self.nao) ** 3
         # kcc2
-        #self.jkcc2 = (gk * self.pkcc2 * (self.ki * self.clo - self.ki * self.cli))  # Fraser and Huang
-        self.jkcc2=gk*self.pkcc2*(self.ki-self.cli)/10000.0 #Doyon
+        # self.jkcc2 = (gk * self.pkcc2 * (self.ki * self.clo - self.ki * self.cli))  # Fraser and Huang
+        self.jkcc2 = gk * self.pkcc2 * (self.ki - self.cli) / 10000.0  # Doyon
 
-        if self.an==True:
-            self.xm=self.xi/2.0
-            self.xi=self.xm
-            self.xmz=self.z-0.15
-            self.xz=self.z+0.15
-            self.an=False
+        if self.an:
+            self.xm = self.xi / 2.0
+            self.xi = self.xm
+            self.xmz = self.z - 0.15
+            self.xz = self.z + 0.15
+            self.an = False
 
-        self.z=(self.xmz*self.xm+self.xz*self.xi)/(self.xm+self.xi)
+        self.z = (self.xmz * self.xm + self.xz * self.xi) / (self.xm + self.xi)
 
         # ionic flux equations
         # dnai,dki,dcli,dxi: increase in intracellular ion conc during time step dt
@@ -131,7 +134,7 @@ class Compartment(TimeMixin):
             }, 'cli': {
                 "value": dcli,
                 "type" : UpdateType.CHANGE
-            }, 'xi': {
+            }, 'xi' : {
                 "value": dxi,
                 "type" : UpdateType.CHANGE
             }
@@ -145,7 +148,7 @@ class Compartment(TimeMixin):
         variables rely on other variables. This is done after variable (deferred) updates in step.
         """
         # intracellular osmolarity
-        self.osi = self.nai + self.ki + self.cli + self.xi +self.xm
+        self.osi = self.nai + self.ki + self.cli + self.xi + self.xm
         # update volume
         w2 = (self.w * self.osi) / oso  # update volume
 
