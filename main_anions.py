@@ -72,7 +72,7 @@ def anions():
     comp2.gx = 1e-9
     comp2.an = True
     if comp2.an:
-        comp2.ratio=0.2
+        comp2.ratio=0.99 # ratio of fixed anions
         z_graph = gui.add_graph() \
             .add_ion_conc(comp, "z", line_style='m') \
             .add_ion_conc(comp2, "z", line_style='m--')  # obviously, z is not an ion!

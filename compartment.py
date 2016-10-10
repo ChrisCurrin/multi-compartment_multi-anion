@@ -109,8 +109,9 @@ class Compartment(TimeMixin):
         if self.an:
             self.xm = self.xi * self.ratio
             self.xi_temp = self.xi * (1-self.ratio)
-            self.xmz = self.z - 0.15
-            self.xz = self.z + 0.15
+            self.xz = -1.0
+            self.xmz = (self.z * self.xi - self.xz * self.xi_temp) / self.xm
+            print('Anion flux with fixed anions having net charge',self.xmz,'while a proportion of',(1-self.ratio),'of all impermeants are temporarily mobile anions of charge',self.xz)
             self.an = False
 
         self.z = (self.xmz * self.xm + self.xz * self.xi_temp) / self.xi
