@@ -16,7 +16,7 @@ gcl = 1e-8  # gna,gk,gcl: conductances in mS/cm^2 conv to S/dm^2 (10^-3/10^-2) -
 ck = 2
 cna = 3  # cna,ck: pump (ATPase) stoichiometries
 # pump rates
-default_p = 10 ** (-1.995) / F
+default_p = 10 ** (-2.432631) / F
 # concentrations
 nao = 145e-3
 clo = 119e-3

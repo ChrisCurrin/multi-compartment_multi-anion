@@ -78,8 +78,10 @@ class Compartment(TimeMixin):
         # delta(anions of a fixed charge)
         self.an = False
         self.xm = 0
+        self.xi_temp = self.xi
         self.xmz = self.z
         self.xz = self.z
+        self.ratio = 0.5
 
     def step(self, _time: Time = None):
         """
@@ -96,28 +98,29 @@ class Compartment(TimeMixin):
         if _time is None:
             raise ValueError("{} has no time object specified".format(self.__class__.__name__))
         # update voltage
-        self.V = self.FinvCAr * (self.nai + self.ki - self.cli + self.z * (self.xi + self.xm))
+        self.xi = self.xm + self.xi_temp
+        self.V = self.FinvCAr * (self.nai + self.ki - self.cli + self.z * self.xi)
         # update cubic pump rate (dependent on sodium gradient)
         self.jp = self.p * (self.nai / self.nao) ** 3
         # kcc2
         # self.jkcc2 = (gk * self.pkcc2 * (self.ki * self.clo - self.ki * self.cli))  # Fraser and Huang
-        self.jkcc2 = gk * self.pkcc2 * (self.ki - self.cli) / 10000.0  # Doyon
+        self.jkcc2 = self.pkcc2 * (self.ki - self.cli) / 10000.0  # Doyon
 
         if self.an:
-            self.xm = self.xi / 2.0
-            self.xi = self.xm
+            self.xm = self.xi * self.ratio
+            self.xi_temp = self.xi * (1-self.ratio)
             self.xmz = self.z - 0.15
             self.xz = self.z + 0.15
             self.an = False
 
-        self.z = (self.xmz * self.xm + self.xz * self.xi) / (self.xm + self.xi)
+        self.z = (self.xmz * self.xm + self.xz * self.xi_temp) / self.xi
 
         # ionic flux equations
         # dnai,dki,dcli,dxi: increase in intracellular ion conc during time step dt
         dnai = -_time.dt * self.Ar * (gna * (self.V - RTF * np.log(self.nao / self.nai)) + cna * self.jp)
-        dki = -_time.dt * self.Ar * (gk * (self.V - RTF * np.log(self.ko / self.ki)) - ck * self.jp + self.jkcc2)
-        dcli = _time.dt * self.Ar * (gcl * (self.V + RTF * np.log(self.clo / self.cli)) - self.jkcc2)
-        dxi = _time.dt * self.Ar * (self.gx * (self.V - RTF / self.xz * np.log(xo_z / self.xi)))
+        dki = -_time.dt * self.Ar * (gk * (self.V - RTF * np.log(self.ko / self.ki)) - ck * self.jp - self.jkcc2)
+        dcli = _time.dt * self.Ar * (gcl * (self.V + RTF * np.log(self.clo / self.cli)) + self.jkcc2)
+        dxi = _time.dt * self.Ar * (self.gx * (self.V - RTF / self.xz * np.log(xo_z / self.xi_temp)))
 
         # increment concentrations
         # self.nai += dna
@@ -134,7 +137,7 @@ class Compartment(TimeMixin):
             }, 'cli': {
                 "value": dcli,
                 "type" : UpdateType.CHANGE
-            }, 'xi' : {
+            }, 'xi_temp' : {
                 "value": dxi,
                 "type" : UpdateType.CHANGE
             }
@@ -148,7 +151,8 @@ class Compartment(TimeMixin):
         variables rely on other variables. This is done after variable (deferred) updates in step.
         """
         # intracellular osmolarity
-        self.osi = self.nai + self.ki + self.cli + self.xi + self.xm
+        self.xi = self.xm + self.xi_temp
+        self.osi = self.nai + self.ki + self.cli + self.xi
         # update volume
         w2 = (self.w * self.osi) / oso  # update volume
 
@@ -156,7 +160,7 @@ class Compartment(TimeMixin):
         self.nai = (self.nai * self.w) / w2
         self.ki = (self.ki * self.w) / w2
         self.cli = (self.cli * self.w) / w2
-        self.xi = (self.xi * self.w) / w2
+        self.xi_temp = (self.xi_temp * self.w) / w2
         self.xm = (self.xm * self.w) / w2
         self.w = w2
         # affect volume change into length change
