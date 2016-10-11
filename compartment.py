@@ -77,11 +77,13 @@ class Compartment(TimeMixin):
 
         # delta(anions of a fixed charge)
         self.an = False
-        self.xm = 0
-        self.xi_temp = self.xi
+        self.ratio = 0.5
+        self.xm = self.xi * self.ratio
+        self.xi_temp = self.xi * (1 - self.ratio)
         self.xmz = self.z
         self.xz = self.z
-        self.ratio = 0.5
+
+        self.jkccup = False
 
     def step(self, _time: Time = None):
         """
@@ -104,11 +106,12 @@ class Compartment(TimeMixin):
         self.jp = self.p * (self.nai / self.nao) ** 3
         # kcc2
         # self.jkcc2 = (gk * self.pkcc2 * (self.ki * self.clo - self.ki * self.cli))  # Fraser and Huang
+
+        if self.jkccup:
+            self.pkcc2 += 5e-12
         self.jkcc2 = self.pkcc2 * (self.ki - self.cli) / 10000.0  # Doyon
 
         if self.an:
-            self.xm = self.xi * self.ratio
-            self.xi_temp = self.xi * (1-self.ratio)
             self.xz = -1.0
             self.xmz = (self.z * self.xi - self.xz * self.xi_temp) / self.xm
             print('Anion flux with fixed anions having net charge',self.xmz,'while a proportion of',(1-self.ratio),'of all impermeants are temporarily mobile anions of charge',self.xz)

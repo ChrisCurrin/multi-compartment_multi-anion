@@ -69,13 +69,19 @@ def anions():
 
     # update anion conductance
 
-    comp2.gx = 1e-9
-    comp2.an = True
+    comp2.jkccup = True
+    #comp2.gx = 1e-9
+    #comp2.an = True
     if comp2.an:
-        comp2.ratio=0.99 # ratio of fixed anions
+        comp2.ratio = 0.98 # ratio of fixed anions
         z_graph = gui.add_graph() \
             .add_ion_conc(comp, "z", line_style='m') \
             .add_ion_conc(comp2, "z", line_style='m--')  # obviously, z is not an ion!
+
+    if comp2.jkccup:
+        g_graph = gui.add_graph() \
+            .add_ion_conc(comp, "pkcc2", line_style = 'k') \
+            .add_ion_conc(comp2, "pkcc2", line_style = 'k--') \
 
     sim.run(continuefor=50, dt=dt, plot_update_interval=50, data_collect_interval=0.025, block_after=False)
     print("Ion concentrations given anion flux from the dendritic compartment")
@@ -83,6 +89,7 @@ def anions():
         print("{}.{}:{} \t {}.{}:{} ".format(comp.name, ion, comp[ion], comp2.name, ion, comp2[ion]))
 
     comp2.gx = 0e-9
+    comp2.jkccup = False
 
     # comp2.p=1e-4
     sim.run(continuefor=100, dt=dt, plot_update_interval=50, data_collect_interval=0.025, block_after=True)
