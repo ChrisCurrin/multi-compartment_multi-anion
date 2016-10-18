@@ -33,7 +33,7 @@ class Compartment(TimeMixin):
         self.pkcc2 = pkcc2  # strength of kcc2
         self.z = z  # intracellular charge of impermeant anions
         self.w = np.pi * self.r ** 2 * self.L  # initial volume in liters
-        self.Ar = 4e6  # area constant (F and H method)
+        self.Ar = 4e6 # area constant (F and H method)
         self.C = 7e-6  # capacitance (F/dm^2)
         # (F/C*area scaling constant)
         self.FinvCAr = F / (self.C * self.Ar)
@@ -42,16 +42,18 @@ class Compartment(TimeMixin):
         self.ki = ki
         if cli is None:
             # setting chloride that is osmo- and electro-neutral initially.
-            self.cli = ((oso - self.nai - self.ki) * self.z + self.nai + self.ki) / (1 + self.z)
+            self.cli = ((oso + (self.nai + self.ki)*(1/self.z-1))) / (1 + self.z)
         else:
             self.cli = cli
         self.xi = (self.cli - self.ki - self.nai) / self.z
+
+        print(self.cli,self.xi)
 
         # default conductance of impermeant anions
         self.gx = 0e-9
 
         if self.xi < 0 or self.cli < 0:
-            raise RuntimeError("""Initial choice of either ki or nai resulted in negative concentration of
+            print("""Initial choice of either ki or nai resulted in negative concentration of
                                     intracellular ion - choose different starting values.""")
         # intracellular osmolarity
         self.osi = self.nai + self.ki + self.cli + self.xi
@@ -70,20 +72,23 @@ class Compartment(TimeMixin):
         self.jp = self.p * (self.nai / nao) ** 3
         # kcc2
         # self.jkcc2 = (gk * self.pkcc2 * (self.ki * self.clo - self.ki * self.cli))  # Fraser and Huang
-        self.jkcc2 = gk * self.pkcc2 * (self.ki - self.cli) / 10000.0  # Doyon
+        self.ek = RTF * np.log(self.ko / self.ki)
+        self.ecl = RTF * np.log(self.cli / self.clo)
+        self.jkcc2 = self.pkcc2 * (self.ek - self.ecl)  # Doyon
 
         # register component with simulator
         simulator.Simulator.get_instance().register_compartment(self)
 
         # delta(anions of a fixed charge)
         self.an = False
-        self.ratio = 0.5
+        self.ratio = 0.999
         self.xm = self.xi * self.ratio
         self.xi_temp = self.xi * (1 - self.ratio)
         self.xmz = self.z
         self.xz = self.z
 
         self.jkccup = False
+        self.absox = self.xi*self.w
 
     def step(self, _time: Time = None):
         """
@@ -109,7 +114,7 @@ class Compartment(TimeMixin):
 
         if self.jkccup:
             self.pkcc2 += 5e-12
-        self.jkcc2 = self.pkcc2 * (self.ki - self.cli) / 10000.0  # Doyon
+        self.jkcc2 = self.pkcc2 * (self.ek - self.ecl)  # Doyon
 
         if self.an:
             self.xz = -1.0
@@ -126,6 +131,8 @@ class Compartment(TimeMixin):
         dcli = _time.dt * self.Ar * (gcl * (self.V + RTF * np.log(self.clo / self.cli)) + self.jkcc2)
         dxi = _time.dt * self.Ar * (self.gx * (self.V - RTF / self.xz * np.log(xo_z / self.xi_temp)))
 
+        self.ek = RTF * np.log(self.ko / self.ki)
+        self.ecl = RTF * np.log(self.cli / self.clo)
         # increment concentrations
         # self.nai += dna
         # self.ki += dk
@@ -169,6 +176,7 @@ class Compartment(TimeMixin):
         self.w = w2
         # affect volume change into length change
         self.L = self.w / (np.pi * self.r ** 2)
+        self.absox = self.xi*self.w
 
     def copy(self, name):
         """

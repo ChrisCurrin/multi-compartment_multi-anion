@@ -52,7 +52,7 @@ def zplm(z, gkcc, ose):
     return pi, nai, ki, cli, xi, vm
 
 
-def checkpara(kcc2=0, z=-0.85):
+def checkpara(kcc2=1e-8, z=-0.85):
     ti = [[], [], [], [], []]
     T = [-8.0, -7.0, -6.0, -5.5, -5.0, -4.5, -4, -3.5, -3.0, -2.0]
     sim = Simulator()
@@ -61,7 +61,7 @@ def checkpara(kcc2=0, z=-0.85):
         q = 10 ** (k) / F
         comp = Compartment("soma with pump rate 1e" + str(k) + "/F", pkcc2=kcc2, z=z, p=q)
         time.clock()
-        sim.run(stop=5000, plot_update_interval=5000)
+        sim.run(stop=1000, plot_update_interval=5000)
         ti[0].append(comp.V)
         ti[1].append(comp.ki)
         ti[2].append(comp.nai)
