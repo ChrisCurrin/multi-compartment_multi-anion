@@ -99,6 +99,69 @@ class TestDiffusion(TestCase):
         # self.fail()
         pass
 
+    def test_one_is_two(self):
+        self.compBase = Compartment("c1", length=100, pkcc2=0, z=-0.85,
+                                cli=0.015292947537423218,
+                                ki=0.023836660428807395,
+                                nai=0.1135388427892471)
+
+        self.comp = Compartment("c1", length=50, pkcc2=0, z=-0.85,
+                                    cli=0.015292947537423218,
+                                    ki=0.023836660428807395,
+                                    nai=0.1135388427892471)
+        self.comp2 = self.comp.copy("c2")
+        # set diffusion value
+        cli_D = 2.03  # um2/ms
+        cli_D *= 1e-5 ** 2  # um2 to dm2 (D in dm2/ms)
+        ki_D = 1.96  # um2/ms
+        ki_D *= 1e-5 ** 2  # um2 to dm2 (D in dm2/ms)
+        nai_D = 1.33
+        nai_D *= 1e-5 ** 2
+        # create diffusion connection
+        diffusion_object = Diffusion(self.comp, self.comp2, ions={'cli': cli_D, 'ki': ki_D, 'nai': nai_D})
+
+        self.assertEqual(self.compBase.cli, self.comp.cli)
+
+        self.sim.run(stop=100, dt=0.001, block_after=False)
+
+        self.assertEqual(self.compBase.cli, self.comp.cli)
+        self.assertEqual(self.comp.cli, self.comp2.cli)
+
+        self.compBase.gx = self.comp.gx = self.comp2.gx = 1e-8
+
+        self.sim.run(continuefor=100, dt=0.001, block_after=False)
+
+        self.assertEqual(self.compBase.cli, self.comp.cli)
+        self.assertEqual(self.comp.cli, self.comp2.cli)
+
+    def test_middle(self):
+        self.compBase = Compartment("c1", length=100, pkcc2=1e-8, z=-0.85,
+                                    cli=0.015292947537423218,
+                                    ki=0.023836660428807395,
+                                    nai=0.1135388427892471)
+
+        self.comp = self.compBase.copy("left")
+        self.comp2 = self.comp.copy("right")
+        # set diffusion value
+        cli_D = 2.03  # um2/ms
+        cli_D *= 1e-5 ** 2  # um2 to dm2 (D in dm2/ms)
+        ki_D = 1.96  # um2/ms
+        ki_D *= 1e-5 ** 2  # um2 to dm2 (D in dm2/ms)
+        nai_D = 1.33
+        nai_D *= 1e-5 ** 2
+        # create diffusion connection
+        diffusion_object = Diffusion(self.comp, self.compBase, ions={'cli': cli_D, 'ki': ki_D, 'nai': nai_D})
+        diffusion_object = Diffusion(self.comp2, self.compBase, ions={'cli': cli_D, 'ki': ki_D, 'nai': nai_D})
+
+        self.sim.run(stop=100, dt=0.001, block_after=False)
+
+        self.compBase.gx = 1e-8
+        self.sim.run(continuefor=20, dt=0.001, block_after=False)
+        self.assertEqual(self.comp.cli, self.comp2.cli)
+
+        self.compBase.gx = 0e-8
+        self.sim.run(continuefor=20, dt=0.001, block_after=False)
+        self.assertEqual(self.comp.cli, self.comp2.cli)
 
 class SimpleCompartment(Compartment):
     """

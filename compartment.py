@@ -33,7 +33,7 @@ class Compartment(TimeMixin):
         self.pkcc2 = pkcc2  # strength of kcc2
         self.z = z  # intracellular charge of impermeant anions
         self.w = np.pi * self.r ** 2 * self.L  # initial volume in liters
-        self.Ar = 4e6 # area constant (F and H method)
+        self.Ar = 4e6  # area constant (F and H method)
         self.C = 7e-6  # capacitance (F/dm^2)
         # (F/C*area scaling constant)
         self.FinvCAr = F / (self.C * self.Ar)
@@ -42,12 +42,12 @@ class Compartment(TimeMixin):
         self.ki = ki
         if cli is None:
             # setting chloride that is osmo- and electro-neutral initially.
-            self.cli = ((oso + (self.nai + self.ki)*(1/self.z-1))) / (1 + self.z)
+            self.cli = ((oso + (self.nai + self.ki) * (1 / self.z - 1))) / (1 + self.z)
         else:
             self.cli = cli
         self.xi = (self.cli - self.ki - self.nai) / self.z
 
-        print(self.cli,self.xi)
+        print(self.cli, self.xi)
 
         # default conductance of impermeant anions
         self.gx = 0e-9
@@ -88,7 +88,7 @@ class Compartment(TimeMixin):
         self.xz = self.z
 
         self.jkccup = False
-        self.absox = self.xi*self.w
+        self.absox = self.xi * self.w
 
     def step(self, _time: Time = None):
         """
@@ -119,7 +119,8 @@ class Compartment(TimeMixin):
         if self.an:
             self.xz = -1.0
             self.xmz = (self.z * self.xi - self.xz * self.xi_temp) / self.xm
-            print('Anion flux with fixed anions having net charge',self.xmz,'while a proportion of',(1-self.ratio),'of all impermeants are temporarily mobile anions of charge',self.xz)
+            print('Anion flux with fixed anions having net charge', self.xmz, 'while a proportion of', (1 - self.ratio),
+                  'of all impermeants are temporarily mobile anions of charge', self.xz)
             self.an = False
 
         self.z = (self.xmz * self.xm + self.xz * self.xi_temp) / self.xi
@@ -139,16 +140,16 @@ class Compartment(TimeMixin):
         # self.cli += dcl
         UpdateType = deferred_update.UpdateType
         simulator.Simulator.get_instance().to_update_multi(self, {
-            'nai'   : {
+            'nai'       : {
                 "value": dnai,
                 "type" : UpdateType.CHANGE
-            }, 'ki' : {
+            }, 'ki'     : {
                 "value": dki,
                 "type" : UpdateType.CHANGE
-            }, 'cli': {
+            }, 'cli'    : {
                 "value": dcli,
                 "type" : UpdateType.CHANGE
-            }, 'xi_temp' : {
+            }, 'xi_temp': {
                 "value": dxi,
                 "type" : UpdateType.CHANGE
             }
@@ -176,7 +177,7 @@ class Compartment(TimeMixin):
         self.w = w2
         # affect volume change into length change
         self.L = self.w / (np.pi * self.r ** 2)
-        self.absox = self.xi*self.w
+        self.absox = self.xi * self.w
 
     def copy(self, name):
         """
