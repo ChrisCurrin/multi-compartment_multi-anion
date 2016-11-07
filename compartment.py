@@ -40,6 +40,7 @@ class Compartment(TimeMixin):
         # na,k,cl,x: intracellular starting concentrations
         self.nai = nai
         self.ki = ki
+        self.ionjnet = {'cli': 0, 'ki': 0, 'nai': 0}
         if cli is None:
             # setting chloride that is osmo- and electro-neutral initially.
             self.cli = ((oso + (self.nai + self.ki) * (1 / self.z - 1))) / (1 + self.z)
