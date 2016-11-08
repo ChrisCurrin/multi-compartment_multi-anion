@@ -4,6 +4,7 @@ from compartment import Compartment
 from sim_time import TimeMixin, Time
 from constants import k, q, valence
 from common import T
+import gui
 
 class Diffusion(TimeMixin):
     def __init__(self, comp_a: Compartment, comp_b: Compartment, ions: dict):
@@ -18,7 +19,8 @@ class Diffusion(TimeMixin):
         self.comp_a = comp_a
         self.comp_b = comp_b
         self.ions = ions
-        self.ionjnet = ions
+        self.comp_a.ionjnet = ions
+        self.comp_b.ionjnet = ions
         # difference in distance between compartment midpoints
         self.dx = self.comp_a.L / 2 + self.comp_b.L / 2
         # register component with simulator
@@ -37,7 +39,8 @@ class Diffusion(TimeMixin):
             drift_b = -1*self.ohms_law(self.comp_b, ion, D / _time.dt)
             d_drift = (drift_a + drift_b)
             j_net = (F + d_drift) * (_time.dt / self.dx)
-            self.ionjnet[ion] = j_net
+            self.comp_a.ionjnet[ion] = j_net
+            self.comp_b.ionjnet[ion] = -j_net
             simulator.Simulator.get_instance().to_update(self.comp_a, ion, j_net, deferred_update.UpdateType.CHANGE)
             # -j_net for comp_b as it is equal but opposite of j_net w.r.t. comp_a
             simulator.Simulator.get_instance().to_update(self.comp_b, ion, -j_net, deferred_update.UpdateType.CHANGE)
