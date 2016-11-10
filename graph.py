@@ -22,7 +22,7 @@ class Graph(object):
         plt.hold()
         self.follow_list = []
 
-    def add_var(self, x_object: any, x_var: str, y_object: any, y_var: str, line_style: str = None,
+    def add_var(self, x_object: any, x_var: str or dict, y_object: any, y_var: str or dict, line_style: str = None,
                 y_units_scale: float = 1.0, y_plot_units: str = None):
         """
         Add variables to be plotted.
@@ -41,16 +41,45 @@ class Graph(object):
         :return: self, for chaining
         """
         try:
-            assert x_object[x_var] or x_object[x_var] == 0
-            assert y_object[y_var] or y_object[y_var] == 0
+            # these blocks check if the object is hashable and has the variable wanting to be plotted
+            # if the variable is a dictionary of multiple entries, each entry is treated as a variable
+            if isinstance(x_var, str):
+                assert x_object[x_var] or x_object[x_var] == 0
+            elif isinstance(x_var, dict):
+                if len(x_var) > 1:
+                    for (key, val) in x_var.items():
+                        self.add_var(x_object, {key: val}, y_object, y_var, line_style, y_units_scale, y_plot_units)
+                else:
+                    for (key, val) in y_var.items():
+                        assert y_object[key][val] or y_object[key][val] == 0
+            else:
+                assert False
+            if isinstance(y_var, str):
+                assert y_object[y_var] or y_object[y_var] == 0
+            elif isinstance(y_var, dict):
+                if len(y_var) > 1:
+                    for (key, val) in y_var.items():
+                        self.add_var(x_object, x_var, y_object, {key: val}, line_style, y_units_scale, y_plot_units)
+                else:
+                    for (key, val) in y_var.items():
+                        assert y_object[key][val] or y_object[key][val] == 0
+            else:
+                assert False
         except KeyError:
-            print("variable {} or {} not present in {}".format(x_var, y_var, x_object))
+            print("variable {} or {} not present in {} or {}".format(x_var, y_var, x_object, y_object))
         else:
+            if isinstance(y_var, str):
+                label = ".".join([y_object.name, y_var])
+            elif isinstance(y_var, dict):
+                for (key, val) in y_var.items():
+                    label = ".".join([y_object.name, key, val])
+            else:
+                label = "ERROR"
             # plot
             if line_style is None:
-                line, = self.ax.plot([], [], label=".".join([y_object.name, y_var]))
+                line, = self.ax.plot([], [], label=label)
             else:
-                line, = self.ax.plot([], [], line_style, label=".".join([y_object.name, y_var]))
+                line, = self.ax.plot([], [], line_style, label=label)
             # store
             self.follow_list.append(((x_object, x_var, []), (y_object, y_var, [], y_units_scale), line))
             # auto-legend
@@ -68,7 +97,7 @@ class Graph(object):
         """
         return self.add_var(self.time, "time", y_object, "V", **kwargs)
 
-    def add_ion_conc(self, y_object: any, ion: str, **kwargs):
+    def add_ion_conc(self, y_object: any, ion: str or dict, **kwargs):
         """
         Helper method to add ion versus time
 
@@ -95,8 +124,16 @@ class Graph(object):
         for i, (x_tuple, y_tuple, line) in enumerate(self.follow_list):
             (x_object, x_var, x_data) = x_tuple
             (y_object, y_var, y_data, units_scale) = y_tuple
-            x_data.append(x_object[x_var])
-            y_data.append(y_object[y_var] * units_scale)
+            if isinstance(x_var, str):
+                x_data.append(x_object[x_var])
+            elif isinstance(x_var, dict):
+                for (key, val) in x_var.items():
+                    x_data.append(x_object[key][val])
+            if isinstance(y_var, str):
+                y_data.append(y_object[y_var] * units_scale)
+            elif isinstance(y_var, dict):
+                for (key, val) in y_var.items():
+                    y_data.append(y_object[key][val] * units_scale)
 
     def plot_graph(self):
         """

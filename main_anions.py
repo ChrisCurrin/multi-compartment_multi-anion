@@ -49,7 +49,7 @@ def anions():
     diffusion_object = Diffusion(comp, comp2, ions={'cli': cli_D, 'ki': ki_D, 'nai': nai_D})
     diffusion_object2 = Diffusion(comp, comp3, ions={'cli': cli_D, 'ki': ki_D, 'nai': nai_D})
     j_graph = gui.add_graph() \
-        .add_ion_conc(diffusion_object, "comp_a.ionjnet", line_style='k')
+        .add_ion_conc(diffusion_object, {"ionjnet": "cli"}, line_style='k')
 
     # v.add_voltage(comp2, line_style='--k', y_units_scale=1000, y_plot_units='mV')  # black
     # g.add_ion_conc(comp2, "cli", line_style='--g')  # green
@@ -99,6 +99,9 @@ def anions():
             .add_ion_conc(comp2, "pkcc2", line_style='k--')
         #j_graph = gui.add_graph() \
             #.add_ion_conc(comp,"cljnet", line_style='k')
+
+    g_graph = gui.add_graph() \
+        .add_ion_conc(diffusion_object, {"ionjnet": "cli"}, line_style='k')
 
     sim.run(continuefor=25, dt=dt, plot_update_interval=50, data_collect_interval=0.025, block_after=False)
     print("Ion concentrations given anion flux from the dendritic compartment")
