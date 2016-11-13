@@ -133,6 +133,9 @@ class Compartment(TimeMixin):
         dcli = _time.dt * self.Ar * (gcl * (self.V + RTF * np.log(self.clo / self.cli)) + self.jkcc2)
         dxi = _time.dt * self.Ar * (self.gx * (self.V - RTF / self.xz * np.log(xo_z / self.xi_temp)))
 
+        if self.gx != 0:
+            dxi = dxi#1e-8
+
         self.ek = RTF * np.log(self.ko / self.ki)
         self.ecl = RTF * np.log(self.cli / self.clo)
         # increment concentrations

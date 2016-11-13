@@ -76,21 +76,21 @@ def anions():
         .add_ion_conc(diffusion_object2, {"ionjnet": "kiplot"}, line_style='--b') \
         .add_ion_conc(diffusion_object2, {"ionjnet": "naiplot"}, line_style='--r')
 
-    sim.run(continuefor=100, dt=dt, plot_update_interval=50, data_collect_interval=0.025, block_after=False)
+    sim.run(continuefor=20, dt=dt, plot_update_interval=50, data_collect_interval=0.025, block_after=False)
     print("Ion concentrations given diffusion between compartments")
     for ion in ["cli", "ki", "nai", "xi", "pkcc2", "gx", "w"]:
         print("{}.{}:{} \t {}.{}:{} ".format(comp.name, ion, comp[ion], comp2.name, ion, comp2[ion]))
 
     # update anion conductance
 
-    comp2.gx = 0e-8
+    comp2.gx = 1e-8
     if comp2.gx > 0:
         x_graph = gui.add_graph() \
             .add_ion_conc(comp, "absox", line_style='m') \
             .add_ion_conc(comp3, "absox", line_style='m:') \
             .add_ion_conc(comp2, "absox", line_style='m--')  # obviously, z is not an ion!
 
-    comp2.an = False
+    comp2.an = True
     if comp2.an:
         comp2.ratio = 0.98  # ratio of fixed anions
         z_graph = gui.add_graph() \
@@ -99,7 +99,7 @@ def anions():
             .add_ion_conc(comp2, "z", line_style='m--')  # obviously, z is not an ion!
 
     comp2.jkccup = False
-    comp2.pkcc2 = 10e-8
+    #comp2.pkcc2 = 10e-8
     if comp2.jkccup:
         g_graph = gui.add_graph() \
             .add_ion_conc(comp, "pkcc2", line_style='k') \
@@ -118,13 +118,14 @@ def anions():
 
     comp2.gx = 0e-9
     comp2.jkccup = False
-    print(comp2.absox, comp.absox)
 
     # comp2.p=1e-4
-    sim.run(continuefor=100, dt=dt, plot_update_interval=50, data_collect_interval=0.025, block_after=True)
+    sim.run(continuefor=100, dt=dt, plot_update_interval=50, data_collect_interval=0.025, block_after=False)
     print("Ion concentrations after anion flux from the dendritic compartment is halted")
     for ion in ["cli", "ki", "nai", "xi", "pkcc2", "gx", "w"]:
-        print("{}.{}:{} \t {}.{}:{} ".format(comp.name, ion, comp[ion], comp2.name, ion, comp2[ion]))
+        print("{}.{}:{} \t {}.{}:{} ".format(comp.name, ion, comp[ion], comp2.name, ion, comp2[ion], comp3.name, ion, comp[ion]))
+
+    sim.run(continuefor=2, dt=dt, plot_update_interval=50, data_collect_interval=0.025, block_after=True)
     return ()
 
 
