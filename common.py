@@ -28,7 +28,7 @@ oso = xo + nao + clo + ko
 pkcc = 1.0
 
 # DEFAULT cell dimensions
-default_radius = 3 * 1e-5  # radius in um convert to dm
-default_length = 20 * 1e-5  # length in um converted to dm
+default_radius = 5 * 1e-5  # radius in um convert to dm
+default_length = 100 * 1e-5  # length in um converted to dm
 
 n = 200  # points to plot

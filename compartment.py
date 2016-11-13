@@ -25,7 +25,7 @@ class Compartment(TimeMixin):
     """
 
     def __init__(self, name, radius=default_radius, length=default_length, pkcc2=1e-8, z=-0.85, nai=50e-3, ki=80e-3,
-                 p=default_p, cli=None, cljnet= 0):
+                 p=default_p, cli=None):
         self.unique_id = str(time.time())
         self.name = name
         self.r = radius  # in um
@@ -40,11 +40,10 @@ class Compartment(TimeMixin):
         # na,k,cl,x: intracellular starting concentrations
         self.nai = nai
         self.ki = ki
-        self.ionjnet = {'cli':0,'ki':0,'nai':0}
-        self.cljnet = cljnet
+
         if cli is None:
             # setting chloride that is osmo- and electro-neutral initially.
-            self.cli = ((oso + (self.nai + self.ki) * (1 / self.z - 1))) / (1 + self.z)
+            self.cli = (oso + (self.nai + self.ki) * (1 / self.z - 1)) / (1 + self.z)
         else:
             self.cli = cli
         self.xi = (self.cli - self.ki - self.nai) / self.z
@@ -83,7 +82,7 @@ class Compartment(TimeMixin):
 
         # delta(anions of a fixed charge)
         self.an = False
-        self.ratio = 0.999
+        self.ratio = 0.98
         self.xm = self.xi * self.ratio
         self.xi_temp = self.xi * (1 - self.ratio)
         self.xmz = self.z
@@ -142,18 +141,18 @@ class Compartment(TimeMixin):
         # self.cli += dcl
         UpdateType = deferred_update.UpdateType
         simulator.Simulator.get_instance().to_update_multi(self, {
-            'nai'       : {
+            'nai': {
                 "value": dnai,
-                "type" : UpdateType.CHANGE
-            }, 'ki'     : {
+                "type": UpdateType.CHANGE
+            }, 'ki': {
                 "value": dki,
-                "type" : UpdateType.CHANGE
-            }, 'cli'    : {
+                "type": UpdateType.CHANGE
+            }, 'cli': {
                 "value": dcli,
-                "type" : UpdateType.CHANGE
+                "type": UpdateType.CHANGE
             }, 'xi_temp': {
                 "value": dxi,
-                "type" : UpdateType.CHANGE
+                "type": UpdateType.CHANGE
             }
         })
 
@@ -188,7 +187,7 @@ class Compartment(TimeMixin):
         :return: new Compartment
         """
         comp = Compartment(name, radius=self.r, length=self.L, pkcc2=self.pkcc2, z=self.z, nai=self.nai, ki=self.ki,
-                           cli=self.cli, p=self.p, cljnet=self.cljnet)
+                           cli=self.cli, p=self.p)
         comp.xi = self.xi
         # intracellular osmolarity
         comp.osi = comp.nai + comp.ki + comp.cli + comp.xi

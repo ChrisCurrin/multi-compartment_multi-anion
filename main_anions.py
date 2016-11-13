@@ -48,8 +48,6 @@ def anions():
     # create diffusion connection
     diffusion_object = Diffusion(comp, comp2, ions={'cli': cli_D, 'ki': ki_D, 'nai': nai_D})
     diffusion_object2 = Diffusion(comp, comp3, ions={'cli': cli_D, 'ki': ki_D, 'nai': nai_D})
-    j_graph = gui.add_graph() \
-        .add_ion_conc(diffusion_object, {"ionjnet": "cli"}, line_style='k')
 
     # v.add_voltage(comp2, line_style='--k', y_units_scale=1000, y_plot_units='mV')  # black
     # g.add_ion_conc(comp2, "cli", line_style='--g')  # green
@@ -70,6 +68,13 @@ def anions():
         .add_ion_conc(comp, "w", line_style='b') \
         .add_ion_conc(comp3, "w", line_style=':b') \
         .add_ion_conc(comp2, "w", line_style='b--')
+    j_graph = gui.add_graph() \
+        .add_ion_conc(diffusion_object, {"ionjnet": "cliplot"}, line_style='g') \
+        .add_ion_conc(diffusion_object, {"ionjnet": "kiplot"}, line_style='b') \
+        .add_ion_conc(diffusion_object, {"ionjnet": "naiplot"}, line_style='r') \
+        .add_ion_conc(diffusion_object2, {"ionjnet": "cliplot"}, line_style='--g') \
+        .add_ion_conc(diffusion_object2, {"ionjnet": "kiplot"}, line_style='--b') \
+        .add_ion_conc(diffusion_object2, {"ionjnet": "naiplot"}, line_style='--r')
 
     sim.run(continuefor=100, dt=dt, plot_update_interval=50, data_collect_interval=0.025, block_after=False)
     print("Ion concentrations given diffusion between compartments")
@@ -78,13 +83,14 @@ def anions():
 
     # update anion conductance
 
-    comp2.jkccup = True
-    #comp2.gx = 1e-8
-    x_graph = gui.add_graph() \
-        .add_ion_conc(comp, "absox", line_style='m') \
-        .add_ion_conc(comp3, "absox", line_style='m:') \
-        .add_ion_conc(comp2, "absox", line_style='m--')  # obviously, z is not an ion!
-    #comp2.an = True
+    comp2.gx = 0e-8
+    if comp2.gx > 0:
+        x_graph = gui.add_graph() \
+            .add_ion_conc(comp, "absox", line_style='m') \
+            .add_ion_conc(comp3, "absox", line_style='m:') \
+            .add_ion_conc(comp2, "absox", line_style='m--')  # obviously, z is not an ion!
+
+    comp2.an = False
     if comp2.an:
         comp2.ratio = 0.98  # ratio of fixed anions
         z_graph = gui.add_graph() \
@@ -92,16 +98,13 @@ def anions():
             .add_ion_conc(comp3, "z", line_style='m:') \
             .add_ion_conc(comp2, "z", line_style='m--')  # obviously, z is not an ion!
 
+    comp2.jkccup = False
+    comp2.pkcc2 = 10e-8
     if comp2.jkccup:
         g_graph = gui.add_graph() \
             .add_ion_conc(comp, "pkcc2", line_style='k') \
             .add_ion_conc(comp3, "pkcc2", line_style='k:') \
             .add_ion_conc(comp2, "pkcc2", line_style='k--')
-        #j_graph = gui.add_graph() \
-            #.add_ion_conc(comp,"cljnet", line_style='k')
-
-    g_graph = gui.add_graph() \
-        .add_ion_conc(diffusion_object, {"ionjnet": "cli"}, line_style='k')
 
     sim.run(continuefor=25, dt=dt, plot_update_interval=50, data_collect_interval=0.025, block_after=False)
     print("Ion concentrations given anion flux from the dendritic compartment")

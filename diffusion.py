@@ -16,13 +16,14 @@ class Diffusion(TimeMixin):
                 ion is the molecule of interest (str) (e.g. 'cli')
                 D is the diffusion coefficient for that ion (float) (dm2/ms)
         """
-        self.name = "comp_a->comp_b"
+        self.name = comp_a.name + '<-' + comp_b.name
         self.comp_a = comp_a
         self.comp_b = comp_b
         self.ions = ions
-        #self.comp_a.ionjnet = ions
-        #self.comp_b.ionjnet = ions
-        self.ionjnet = ions
+        self.ionjnet = {}
+        for ion, D in self.ions.items():
+            self.ionjnet[ion+'plot'] = D
+        self.ionjnet['cli'] = 0
         # difference in distance between compartment midpoints
         self.dx = self.comp_a.L / 2 + self.comp_b.L / 2
         # register component with simulator
@@ -33,6 +34,8 @@ class Diffusion(TimeMixin):
         Diffusion equation between compartments for each time step
         """
         for ion, D in self.ions.items():
+            #if ion == 'cli':
+                #print (ion, D)
             # F in M/ms * dm
             F = self.ficks_law(ion, D / _time.dt)
             # drift in M/ms dm
@@ -41,13 +44,10 @@ class Diffusion(TimeMixin):
             drift_b = -1*self.ohms_law(self.comp_b, ion, D / _time.dt)
             d_drift = (drift_a + drift_b)
             j_net = (F + d_drift) * (_time.dt / self.dx)
-            self.ionjnet[ion] = j_net
-            #self.comp_b.ionjnet[ion] = -j_net
             simulator.Simulator.get_instance().to_update(self.comp_a, ion, j_net, deferred_update.UpdateType.CHANGE)
             # -j_net for comp_b as it is equal but opposite of j_net w.r.t. comp_a
             simulator.Simulator.get_instance().to_update(self.comp_b, ion, -j_net, deferred_update.UpdateType.CHANGE)
-            # self.comp_a[ion] += j_net
-            # self.comp_b[ion] -= j_net
+            self.ionjnet[ion+'plot']=j_net
 
     def ficks_law(self, ion: str, D: float):
         """

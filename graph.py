@@ -83,7 +83,7 @@ class Graph(object):
             # store
             self.follow_list.append(((x_object, x_var, []), (y_object, y_var, [], y_units_scale), line))
             # auto-legend
-            self.ax.legend()
+            self.ax.legend(loc=3)
             self.update()
         return self
 
