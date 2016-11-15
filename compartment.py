@@ -6,7 +6,7 @@ Python 3.x targeted
 """
 import numpy as np
 import copy
-import deferred_update
+from deferred_update import UpdateType
 from constants import F
 from common import RTF
 from common import default_radius, default_length, \
@@ -90,6 +90,10 @@ class Compartment(TimeMixin):
 
         self.jkccup = False
         self.absox = self.xi * self.w
+        self.dnai = 0
+        self.dki = 0
+        self.dcli = 0
+        self.dxi = 0
 
     def step(self, _time: Time = None):
         """
@@ -132,9 +136,12 @@ class Compartment(TimeMixin):
         dki = -_time.dt * self.Ar * (gk * (self.V - RTF * np.log(self.ko / self.ki)) - ck * self.jp - self.jkcc2)
         dcli = _time.dt * self.Ar * (gcl * (self.V + RTF * np.log(self.clo / self.cli)) + self.jkcc2)
         dxi = _time.dt * self.Ar * (self.gx * (self.V - RTF / self.xz * np.log(xo_z / self.xi_temp)))
-
-        if self.gx != 0:
-            dxi = dxi#1e-8
+        self.dnai = dnai
+        self.dki = dki
+        self.dcli = dcli
+        self.dxi = dxi
+        #if self.gx != 0:
+            #dxi = 5e-8
 
         self.ek = RTF * np.log(self.ko / self.ki)
         self.ecl = RTF * np.log(self.cli / self.clo)
@@ -142,7 +149,7 @@ class Compartment(TimeMixin):
         # self.nai += dna
         # self.ki += dk
         # self.cli += dcl
-        UpdateType = deferred_update.UpdateType
+
         simulator.Simulator.get_instance().to_update_multi(self, {
             'nai': {
                 "value": dnai,

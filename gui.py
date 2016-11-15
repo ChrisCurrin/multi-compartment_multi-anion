@@ -64,6 +64,13 @@ class GUI(object):
             graph.clear()
 
     @classmethod
+    def close_graphs(cls):
+        """
+        Close all GUI's graph's
+        """
+        plt.close('all')
+
+    @classmethod
     def update_graphs(cls):
         """
         Call all GUI's graphs to update their values (does not mean plot)

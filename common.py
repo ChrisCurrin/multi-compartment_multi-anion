@@ -22,7 +22,7 @@ nao = 145e-3
 clo = 119e-3
 ko = 3.5e-3
 xo = -1.0 * (clo - nao - ko)  # nao,clo,ko,xo: extracellular concentrations (mM converted to M)
-xo_z = xo / 2.0
+xo_z = xo * 0.02
 oso = xo + nao + clo + ko
 # KCC2 strength
 pkcc = 1.0

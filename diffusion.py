@@ -20,9 +20,9 @@ class Diffusion(TimeMixin):
         self.comp_a = comp_a
         self.comp_b = comp_b
         self.ions = ions
-        self.ionjnet = {}
+        self.ionjnet = ions.copy()
         for ion, D in self.ions.items():
-            self.ionjnet[ion+'plot'] = D
+            self.ionjnet[ion + 'plot'] = D
         self.ionjnet['cli'] = 0
         # difference in distance between compartment midpoints
         self.dx = self.comp_a.L / 2 + self.comp_b.L / 2
@@ -34,20 +34,20 @@ class Diffusion(TimeMixin):
         Diffusion equation between compartments for each time step
         """
         for ion, D in self.ions.items():
-            #if ion == 'cli':
-                #print (ion, D)
+            # if ion == 'cli':
+            # print (ion, D)
             # F in M/ms * dm
             F = self.ficks_law(ion, D / _time.dt)
             # drift in M/ms dm
             drift_a = self.ohms_law(self.comp_a, ion, D / _time.dt)
             # negative to account for dV calculated from comp_a to comp_b only (and not comp_b to comp_a)
-            drift_b = -1*self.ohms_law(self.comp_b, ion, D / _time.dt)
+            drift_b = -1 * self.ohms_law(self.comp_b, ion, D / _time.dt)
             d_drift = (drift_a + drift_b)
             j_net = (F + d_drift) * (_time.dt / self.dx)
             simulator.Simulator.get_instance().to_update(self.comp_a, ion, j_net, deferred_update.UpdateType.CHANGE)
             # -j_net for comp_b as it is equal but opposite of j_net w.r.t. comp_a
             simulator.Simulator.get_instance().to_update(self.comp_b, ion, -j_net, deferred_update.UpdateType.CHANGE)
-            self.ionjnet[ion+'plot']=j_net
+            self.ionjnet[ion] = j_net
 
     def ficks_law(self, ion: str, D: float):
         """
@@ -91,7 +91,7 @@ class Diffusion(TimeMixin):
         dV = self.comp_a.V - self.comp_b.V
         # dx is calculated in init
         # self.dx = self.comp_a.L / 2 + self.comp_b.L / 2
-        return -mu*valence(ion)*comp[ion]*(dV/self.dx)
+        return -mu * valence(ion) * comp[ion] * (dV / self.dx)
 
     @staticmethod
     def D_to_mu(D: float, ion: str):
@@ -117,7 +117,7 @@ class Diffusion(TimeMixin):
         :param ion:
         :return: D
         """
-        return mu * k*T/(q*valence(ion))
+        return mu * k * T / (q * valence(ion))
 
     def __getitem__(self, item):
         return self.__dict__[item]
