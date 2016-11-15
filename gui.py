@@ -69,6 +69,8 @@ class GUI(object):
         Close all GUI's graph's
         """
         plt.close('all')
+        cls.__graph_list = []
+
 
     @classmethod
     def update_graphs(cls):

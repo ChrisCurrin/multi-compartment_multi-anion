@@ -11,8 +11,12 @@ from diffusion import Diffusion
 
 
 def main():
+    """
+
+    :return: sim, gui: it is useful to return these objects for access after simulation
+    """
     print("main")
-    sim = Simulator()
+    sim = Simulator().get_instance()
     gui = sim.gui()
     dt = 0.001
     # comp = Compartment("soma", pkcc2=0, z=-0.85)
@@ -78,8 +82,12 @@ def main():
 
 
 def anions():
+    """
+
+    :return: sim, gui: it is useful to return these objects for access after simulation
+    """
     print("main_anions")
-    sim = Simulator()
+    sim = Simulator().get_instance()
     gui = sim.gui()
     dt = 0.001
     # comp = Compartment("soma", pkcc2=0, z=-0.85)
@@ -180,7 +188,7 @@ def anions():
             .add_ion_conc(comp2, "z", line_style='m--')  # obviously, z is not an ion!
 
     comp2.jkccup = False
-    #comp2.pkcc2 = 10e-8
+    # comp2.pkcc2 = 10e-8
     if comp2.jkccup:
         g_graph = gui.add_graph() \
             .add_ion_conc(comp, "pkcc2", line_style='k') \
@@ -205,13 +213,53 @@ def anions():
     sim.run(continuefor=100, dt=dt, plot_update_interval=50, data_collect_interval=0.025, block_after=False)
     print("Ion concentrations after anion flux from the dendritic compartment is halted")
     for ion in ["cli", "ki", "nai", "xi", "pkcc2", "gx", "w"]:
-        print("{}.{}:{} \t {}.{}:{} ".format(comp.name, ion, comp[ion], comp2.name, ion, comp2[ion], comp3.name, ion, comp[ion]))
+        print("{}.{}:{} \t {}.{}:{} ".format(comp.name, ion, comp[ion], comp2.name, ion, comp2[ion], comp3.name, ion,
+                                             comp[ion]))
 
     sim.run(continuefor=2, dt=dt, plot_update_interval=50, data_collect_interval=0.025, block_after=False)
-    return
+    return sim, gui
 
+
+usage_help = """
+            main.py
+    Usage:
+    -h, --help              show this help menu
+    -b, --block             block simulation
+                            (control not returned to user)
+    -c, --close             close all previous figures
+    -d, --dispose           close all figures, including those produced during simulation
+                            (control always returned to user; overrides --block)
+                """
 
 if __name__ == "__main__":
-    args = sys.argv[1:]  # (first arg is 'python')
+    argv = sys.argv[1:]  # (first arg is 'python')
+    sim = Simulator.get_instance()
+    gui = sim.gui()
+    block_after = False
+    dispose_after = False
+
+    try:
+        opts, args = getopt.getopt(argv, "hbcd", ["help", "block", "close", "dispose"])
+    except getopt.GetoptError:
+        print(usage_help)
+        sys.exit(2)
+    for opt, arg in opts:
+        if opt in ("-h", "--help"):
+            print(usage_help)
+            sys.exit()
+        elif opt in ("-b", "--block"):
+            block_after = True
+        elif opt in ("-c", "--close"):
+            print("closing...")
+            gui.close_graphs()
+        elif opt in ("-d", "--dispose"):
+            dispose_after = True
+    sim.dispose()
     print(args)
-    anions()
+    [sim, gui] = anions()
+
+    if dispose_after:
+        sim.dispose()
+    else:
+        # run a short sim with the intention of blocking if there is an arg
+        sim.run(continuefor=0.001, dt=0.001, block_after=block_after)
