@@ -24,8 +24,7 @@ class Compartment(TimeMixin):
 
     """
 
-    def __init__(self, name, radius=default_radius, length=default_length, pkcc2=1e-8, z=-0.85, nai=50e-3, ki=80e-3,
-                 p=default_p, cli=None):
+    def __init__(self, name, radius=default_radius, length=default_length, pkcc2=1e-8, z=-0.85, nai=50e-3, ki=80e-3, p=default_p, cli=0):
         self.unique_id = str(time.time())
         self.name = name
         self.r = radius  # in um
@@ -41,12 +40,17 @@ class Compartment(TimeMixin):
         self.nai = nai
         self.ki = ki
 
-        if cli is None:
+        if cli == 0:
             # setting chloride that is osmo- and electro-neutral initially.
             self.cli = (oso + (self.nai + self.ki) * (1 / self.z - 1)) / (1 + self.z)
         else:
             self.cli = cli
-        self.xi = (self.cli - self.ki - self.nai) / self.z
+
+        if self.ki == 0:
+            self.xi = 155.858e-3
+            self.ki = self.cli-self.z*self.xi-self.nai
+        else:
+            self.xi = (self.cli - self.ki - self.nai) / self.z
 
         print(self.cli, self.xi)
 
@@ -135,7 +139,7 @@ class Compartment(TimeMixin):
         dnai = -_time.dt * self.Ar * (gna * (self.V - RTF * np.log(self.nao / self.nai)) + cna * self.jp)
         dki = -_time.dt * self.Ar * (gk * (self.V - RTF * np.log(self.ko / self.ki)) - ck * self.jp - self.jkcc2)
         dcli = _time.dt * self.Ar * (gcl * (self.V + RTF * np.log(self.clo / self.cli)) + self.jkcc2)
-        dxi = _time.dt * self.Ar * (self.gx * (self.V - RTF / self.xz * np.log(xo_z / self.xi_temp)))
+        dxi = -_time.dt * self.Ar * self.xz * (self.gx * (self.V - RTF / self.xz * np.log(xo_z / self.xi_temp)))
         self.dnai = dnai
         self.dki = dki
         self.dcli = dcli

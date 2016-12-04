@@ -7,10 +7,8 @@ Thanks to Kira Dusterwald's modelling and mathematical prowess, there is a singl
 
 This shall be extended to a multi-compartmental model, and visualised using OpenGL. Hopefully computational work can be complemented by experimental data from Dr. Joseph Raimondo.
 
-# Task list (updated 20 Oct)
-* why depolarise when pKCC2 or anions altered in one compartment?
-    * Plot `j_net` of diffusion 
-* scale down neuron (20 um length, 3 um radius)
+# Task list (updated 4 Dec)
+* mechanisms
 * anion flux between compartments (rate?)
 * useful:
     * plot expressions

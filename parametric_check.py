@@ -20,7 +20,6 @@ def frange(start, stop, step):
         yield i
         i += step
 
-
 def zplm(z, gkcc, ose):
     P = frange(-8.0, -4.87, 0.001)
     beta = 1.0 / (gk * gcl - gkcc * gcl + gk * gkcc)
@@ -70,15 +69,16 @@ def checkpara(kcc2=1e-8, z=-0.85):
 
     para = zplm(z, kcc2, oso)
 
+    return T, ti, para
+
+
+if __name__ == "parametric_check":
+    T, ti, para = checkpara()
     plt.figure()
     plt.plot(para[0], para[1], 'r', para[0], para[2], 'c', para[0], para[3], 'g', para[0], para[4], 'b', para[0],
              para[5], 'k', T, ti[0], 'ok', T, ti[1], 'oc', T, ti[2], 'or', T, ti[3], 'og', T, ti[4], 'ob')
     plt.title(
-            'parametric plot vs time series runs: ion concentrations and membrane potential over log(cubic pump rate)')
+        'parametric plot vs time series runs: ion concentrations and membrane potential over log(cubic pump rate)')
     plt.xlabel('log(F.pump rate)')
     plt.ylabel('mV')
     plt.show()
-    return ti
-
-
-checkpara()

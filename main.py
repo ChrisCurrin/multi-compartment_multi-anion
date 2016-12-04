@@ -219,6 +219,35 @@ def anions():
     sim.run(continuefor=2, dt=dt, plot_update_interval=50, data_collect_interval=0.025, block_after=False)
     return sim, gui
 
+def single():
+    """
+
+        :return: sim, gui: it is useful to return these objects for access after simulation
+    """
+    print("single compartment")
+    sim = Simulator().get_instance()
+    gui = sim.gui()
+    dt = 0.001
+
+    comp = Compartment("soma", z=-0.85, cli=4.34333e-3, ki=0, nai=25.562e-3)
+    # find steady state
+    sim.run(continuefor=50, dt=dt, plot_update_interval=50, data_collect_interval=0.025, block_after=False)
+
+    g = gui.add_graph() \
+        .add_ion_conc(comp, "ecl", line_style='g') \
+        .add_ion_conc(comp, "ek", line_style='b') \
+        .add_voltage(comp, line_style='k')
+
+    w = gui.add_graph() \
+        .add_ion_conc(comp, "w", line_style='k')
+
+    sim.run(continuefor=10, dt=dt, plot_update_interval=50, data_collect_interval=0.025, block_after=False)
+
+    comp.gx = 1e-8
+    sim.run(continuefor=50, dt=dt, plot_update_interval=50, data_collect_interval=0.025, block_after=False)
+    comp.gx = 0e-8
+    sim.run(continuefor=25, dt=dt, plot_update_interval=50, data_collect_interval=0.025, block_after=True)
+    return sim, gui
 
 usage_help = """
             main.py
@@ -256,7 +285,7 @@ if __name__ == "__main__":
             dispose_after = True
     sim.dispose()
     print(args)
-    [sim, gui] = anions()
+    [sim, gui] = single()
 
     if dispose_after:
         sim.dispose()
