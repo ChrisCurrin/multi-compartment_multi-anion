@@ -22,13 +22,12 @@ def frange(start, stop, step):
 
 def zplm(z, gkcc, ose):
     P = frange(-8.0, -4.87, 0.001)
-    beta = 1.0 / (gk * gcl - gkcc * gcl + gk * gkcc)
+    beta = 1.0 / (gk * gcl + gkcc * gcl + gk * gkcc)
     nai = []
     ki = []
     cli = []
     xi = []
     vm = []
-    zi = []
     pi = []
 
     for p in P:
@@ -41,7 +40,6 @@ def zplm(z, gkcc, ose):
                         2 * (1 - z) * (nao * np.exp(-3 * q / gna) + ko * np.exp(2 * q * (gcl + gkcc) * beta)))
         v = (-np.log(theta)) * R
         vm.append(v)
-        zi.append(nao * np.exp(-v / R - 3 * q / gna))
         nai.append(nao * np.exp(-v / R - 3 * q / gna))
         ki.append(ko * np.exp(-v / R + 2 * q * (gcl + gkcc) * beta))
         cli.append(clo * np.exp(+v / R - 2 * q * gkcc * beta))
@@ -60,7 +58,7 @@ def checkpara(kcc2=1e-8, z=-0.85):
         q = 10 ** (k) / F
         comp = Compartment("soma with pump rate 1e" + str(k) + "/F", pkcc2=kcc2, z=z, p=q)
         time.clock()
-        sim.run(stop=1000, plot_update_interval=5000)
+        sim.run(continuefor=1000, plot_update_interval=5000,block_after=False)
         ti[0].append(comp.V)
         ti[1].append(comp.ki)
         ti[2].append(comp.nai)
@@ -71,14 +69,12 @@ def checkpara(kcc2=1e-8, z=-0.85):
 
     return T, ti, para
 
-
-if __name__ == "parametric_check":
-    T, ti, para = checkpara()
-    plt.figure()
-    plt.plot(para[0], para[1], 'r', para[0], para[2], 'c', para[0], para[3], 'g', para[0], para[4], 'b', para[0],
-             para[5], 'k', T, ti[0], 'ok', T, ti[1], 'oc', T, ti[2], 'or', T, ti[3], 'og', T, ti[4], 'ob')
-    plt.title(
-        'parametric plot vs time series runs: ion concentrations and membrane potential over log(cubic pump rate)')
-    plt.xlabel('log(F.pump rate)')
-    plt.ylabel('mV')
-    plt.show()
+T, ti, para = checkpara()
+plt.figure()
+plt.plot(para[0], para[1], 'r', para[0], para[2], 'c', para[0], para[3], 'g', para[0], para[4], 'b', para[0],
+         para[5], 'k', T, ti[0], 'ok', T, ti[1], 'oc', T, ti[2], 'or', T, ti[3], 'og', T, ti[4], 'ob')
+plt.title(
+    'parametric plot vs time series runs: ion concentrations and membrane potential over log(cubic pump rate)')
+plt.xlabel('log(F.pump rate)')
+plt.ylabel('mV')
+plt.show()
