@@ -285,7 +285,7 @@ if __name__ == "__main__":
             dispose_after = True
     sim.dispose()
     print(args)
-    [sim, gui] = single()
+    [sim, gui] = anions()
 
     if dispose_after:
         sim.dispose()

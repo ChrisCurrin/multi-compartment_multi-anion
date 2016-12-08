@@ -6,12 +6,13 @@ Python 3.x targeted
 """
 
 import numpy as np
-from constants import F, R
-from common import clo, ko, nao, gk, gna, gcl, oso
+from constants import F
+from common import clo, ko, nao, gk, gna, gcl, oso, RTF
 from simulator import Simulator
 from compartment import Compartment
 import time
 import matplotlib.pyplot as plt
+import gui
 
 
 def frange(start, stop, step):
@@ -21,7 +22,7 @@ def frange(start, stop, step):
         i += step
 
 def zplm(z, gkcc, ose):
-    P = frange(-8.0, -4.87, 0.001)
+    P = frange(-8.0, -4.5, 0.001)
     beta = 1.0 / (gk * gcl + gkcc * gcl + gk * gkcc)
     nai = []
     ki = []
@@ -31,20 +32,20 @@ def zplm(z, gkcc, ose):
     pi = []
 
     for p in P:
-        q = 10 ** (p) / (F * R)
+        q = 10 ** (p) / (F * RTF)
         if z == -1:
             theta = 0.5 * ose / (nao * np.exp(-3 * q / gna) + ko * np.exp(2 * q * (gcl + gkcc) * beta))
         else:
             theta = (-z * ose + np.sqrt(z ** 2 * ose ** 2 + 4 * (1 - z ** 2) * clo * np.exp(-2 * q * gkcc * beta) * (
                 nao * np.exp(-3 * q / gna) + ko * np.exp(2 * q * (gcl + gkcc) * beta)))) / (
                         2 * (1 - z) * (nao * np.exp(-3 * q / gna) + ko * np.exp(2 * q * (gcl + gkcc) * beta)))
-        v = (-np.log(theta)) * R
+        v = (-np.log(theta)) * RTF
         vm.append(v)
-        nai.append(nao * np.exp(-v / R - 3 * q / gna))
-        ki.append(ko * np.exp(-v / R + 2 * q * (gcl + gkcc) * beta))
-        cli.append(clo * np.exp(+v / R - 2 * q * gkcc * beta))
+        nai.append(nao * np.exp(-v / RTF - 3 * q / gna))
+        ki.append(ko * np.exp(-v / RTF + 2 * q * (gcl + gkcc) * beta))
+        cli.append(clo * np.exp(+v / RTF - 2 * q * gkcc * beta))
         xi.append(ose - nai[-1] - cli[-1] - ki[-1])
-        pi.append(np.log10(F * R * q / (((nao * np.exp(-v / R - 3 * q / gna)) / nao) ** 3)))
+        pi.append(np.log10(F * RTF * q / (((nao * np.exp(-v / RTF - 3 * q / gna)) / nao) ** 3)))
 
     return pi, nai, ki, cli, xi, vm
 
@@ -77,4 +78,5 @@ plt.title(
     'parametric plot vs time series runs: ion concentrations and membrane potential over log(cubic pump rate)')
 plt.xlabel('log(F.pump rate)')
 plt.ylabel('mV')
+plt.savefig('fig.eps')
 plt.show()
