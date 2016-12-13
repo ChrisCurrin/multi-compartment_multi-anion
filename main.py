@@ -9,76 +9,181 @@ from simulator import Simulator
 from compartment import Compartment
 from diffusion import Diffusion
 
-
-def main():
+usage_help = \
     """
+            main.py
+    Usage:
+    -h, --help              show this help menu
+    -b, --block             block simulation
+                            (control not returned to user)
+    -c, --close             close all previous figures
+    -d, --dispose           close all figures, including those produced during simulation
+                            (control always returned to user; overrides --block)
+"""
 
+
+def main(cli_D=2.03, new_gx=1e-8, anion_flux=True, default_xz=-0.85, jkccup=None):
+    """
+    cli_D  # um2/ms
     :return: sim, gui: it is useful to return these objects for access after simulation
     """
     print("main")
     sim = Simulator().get_instance()
     gui = sim.gui()
     dt = 0.001
-    # comp = Compartment("soma", pkcc2=0, z=-0.85)
-    comp = Compartment("soma", pkcc2=0, z=-0.85  # )
+
+    comp = Compartment("soma", z=-0.85
                        , cli=0.01819925284075134,
                        ki=0.019909567493822927,
                        nai=0.11094226350779378)
-    v = gui.add_graph()
-    v.add_voltage(comp, line_style='k', y_units_scale=1000, y_plot_units='mV')  # black
-    g = gui.add_graph()
-    g.add_ion_conc(comp, "cli", line_style='g')  # green
-    g.add_ion_conc(comp, "ki", line_style='c')  # cyan
-    g.add_ion_conc(comp, "nai", line_style='r')  # red
-    g.add_ion_conc(comp, "xi", line_style='b')  # blue
+
     # find steady-state values of ions
-    sim.run(stop=50, dt=0.001, plot_update_interval=10, data_collect_interval=0.025, block_after=False)
-    # values from steady-state
-    # soma.cli:0.01819948776551597
-    # soma.ki:0.019909327159644736
-    # soma.nai:0.11094252293794836
-    # soma.xi:0.13254866213689095
+    sim.run(stop=25, dt=0.001, plot_update_interval=500, data_collect_interval=5, block_after=False)
 
-    print("Ion concentrations")
-    for ion in ["cli", "ki", "nai", "xi"]:
-        print("{}.{}:{}".format(comp.name, ion, comp[ion]))
-
+    # create copies on either side
     comp2 = comp.copy("dendrite")
-    # change ion concentration
-    comp2.cli -= 1e-3
-    comp2.ki -= 1e-3
+    comp3 = comp.copy("dendrite 2")
 
     # set diffusion value
-    cli_D = 2.03  # um2/ms
     cli_D *= 1e-5 ** 2  # um2 to dm2 (D in dm2/ms)
     ki_D = 1.96  # um2/ms
     ki_D *= 1e-5 ** 2  # um2 to dm2 (D in dm2/ms)
     nai_D = 1.33
     nai_D *= 1e-5 ** 2
-    # create diffusion connection
-    diffusion_object = Diffusion(comp, comp2, ions={'cli': cli_D, 'ki': ki_D, 'nai': nai_D})
 
-    print(diffusion_object.dx)
-    print(diffusion_object.ficks_law("cli", D=cli_D) * dt / diffusion_object.dx)  # (M * dm) to (mM * um) per ms
-    print("Ion concentrations")
-    for ion in ["V", "cli", "ki", "nai", "xi"]:
-        print("{}.{}:{} \t {}.{}:{} ".format(comp.name, ion, comp[ion], comp2.name, ion, comp2[ion]))
-    v.add_voltage(comp2, line_style='--k', y_units_scale=1000, y_plot_units='mV')  # black
-    g.add_ion_conc(comp2, "cli", line_style='--g')  # green
-    g.add_ion_conc(comp2, "ki", line_style='--c')  # cyan
-    g.add_ion_conc(comp2, "nai", line_style='--r')  # red
-    g.add_ion_conc(comp2, "xi", line_style='--b')  # blue
-    cli_graph = gui.add_graph() \
-        .add_ion_conc(comp2, "cli", line_style='--g') \
-        .add_ion_conc(comp, "cli", line_style='g')
+    # create connections between compartments with Diffusion
+    diffusion_object = Diffusion(comp, comp2, ions={'cli': cli_D, 'ki': ki_D, 'nai': nai_D})
+    diffusion_object2 = Diffusion(comp, comp3, ions={'cli': cli_D, 'ki': ki_D, 'nai': nai_D})
+
+    # create plots
+    # plot voltage and reversals
+    voltage_reversal_graph = gui.add_graph() \
+        .add_ion_conc(comp2, "ecl", line_style='--g', y_units_scale=1000, y_plot_units='mV') \
+        .add_ion_conc(comp3, "ecl", line_style=':g', y_units_scale=1000, y_plot_units='mV') \
+        .add_ion_conc(comp, "ecl", line_style='g', y_units_scale=1000, y_plot_units='mV') \
+        .add_ion_conc(comp2, "ek", line_style='--b', y_units_scale=1000, y_plot_units='mV') \
+        .add_ion_conc(comp3, "ek", line_style=':b', y_units_scale=1000, y_plot_units='mV') \
+        .add_ion_conc(comp, "ek", line_style='b', y_units_scale=1000, y_plot_units='mV') \
+        .add_voltage(comp2, line_style='--k', y_units_scale=1000, y_plot_units='mV') \
+        .add_voltage(comp3, line_style=':k', y_units_scale=1000, y_plot_units='mV') \
+        .add_voltage(comp, line_style='k', y_units_scale=1000, y_plot_units='mV')
+
+    # plot volumes
     vol_graph = gui.add_graph() \
         .add_ion_conc(comp, "w", line_style='b') \
+        .add_ion_conc(comp3, "w", line_style=':b') \
         .add_ion_conc(comp2, "w", line_style='b--')
-    # sim.run(stop=0.1, dt=dt, plot_update_interval=dt, data_collect_interval=dt)
-    sim.run(continuefor=50, dt=dt, plot_update_interval=50, data_collect_interval=0.025, block_after=True)
-    print("Ion concentrations")
-    for ion in ["cli", "ki", "nai", "xi"]:
-        print("{}.{}:{} \t {}.{}:{} ".format(comp.name, ion, comp[ion], comp2.name, ion, comp2[ion]))
+
+    # plot fluxes across membrane and between compartments
+    # for cli
+    cli_graph = gui.add_graph() \
+        .add_ion_conc(diffusion_object, {"ionjnet": "cli"}, line_style='g') \
+        .add_ion_conc(diffusion_object2, {"ionjnet": "cli"}, line_style='--g') \
+        .add_ion_conc(comp2, "dcli", line_style='--g') \
+        .add_ion_conc(comp3, "dcli", line_style=':g') \
+        .add_ion_conc(comp, "dcli", line_style='g')
+    # for xi
+    xi_graph = gui.add_graph() \
+        .add_ion_conc(diffusion_object, {"ionjnet": "xi"}, line_style='g') \
+        .add_ion_conc(diffusion_object2, {"ionjnet": "xi"}, line_style='--g') \
+        .add_ion_conc(comp2, "dxi", line_style='--c') \
+        .add_ion_conc(comp3, "dxi", line_style=':c') \
+        .add_ion_conc(comp, "dxi", line_style='c')
+    # for ki
+    ki_graph = gui.add_graph() \
+        .add_ion_conc(diffusion_object, {"ionjnet": "ki"}, line_style='g') \
+        .add_ion_conc(diffusion_object2, {"ionjnet": "ki"}, line_style='--g') \
+        .add_ion_conc(comp2, "dki", line_style='--b') \
+        .add_ion_conc(comp3, "dki", line_style=':b') \
+        .add_ion_conc(comp, "dki", line_style='b')
+    # for nai
+    nai_graph = gui.add_graph() \
+        .add_ion_conc(diffusion_object, {"ionjnet": "nai"}, line_style='g') \
+        .add_ion_conc(diffusion_object2, {"ionjnet": "nai"}, line_style='--g') \
+        .add_ion_conc(comp2, "dnai", line_style='--r') \
+        .add_ion_conc(comp3, "dnai", line_style=':r') \
+        .add_ion_conc(comp, "dnai", line_style='r')
+    # all ions
+    j_graph = gui.add_graph() \
+        .add_ion_conc(diffusion_object, {"ionjnet": "cli"}, line_style='g') \
+        .add_ion_conc(diffusion_object, {"ionjnet": "ki"}, line_style='b') \
+        .add_ion_conc(diffusion_object, {"ionjnet": "nai"}, line_style='r') \
+        .add_ion_conc(diffusion_object2, {"ionjnet": "cli"}, line_style='--g') \
+        .add_ion_conc(diffusion_object2, {"ionjnet": "ki"}, line_style='--b') \
+        .add_ion_conc(diffusion_object2, {"ionjnet": "nai"}, line_style='--r') \
+        .add_ion_conc(comp2, "dcli", line_style='--g') \
+        .add_ion_conc(comp3, "dcli", line_style=':g') \
+        .add_ion_conc(comp, "dcli", line_style='g') \
+        .add_ion_conc(comp2, "dxi", line_style='--c') \
+        .add_ion_conc(comp3, "dxi", line_style=':c') \
+        .add_ion_conc(comp, "dxi", line_style='c') \
+        .add_ion_conc(comp2, "dnai", line_style='--r') \
+        .add_ion_conc(comp3, "dnai", line_style=':r') \
+        .add_ion_conc(comp, "dnai", line_style='r') \
+        .add_ion_conc(comp2, "dki", line_style='--b') \
+        .add_ion_conc(comp3, "dki", line_style=':b') \
+        .add_ion_conc(comp, "dki", line_style='b')
+
+    # run simulation with diffusion
+    sim.run(continuefor=20, dt=dt, plot_update_interval=50, data_collect_interval=0.025)
+    print_concentrations([comp, comp2, comp3],
+                         title="Ion concentrations given diffusion between compartments")
+
+    # (optionally) change anion conductance
+    prev_comp2_gx = comp2.gx
+    comp2.gx = new_gx
+    if comp2.gx > 0:
+        x_graph = gui.add_graph() \
+            .add_ion_conc(comp, "absox", line_style='m') \
+            .add_ion_conc(comp3, "absox", line_style='m:') \
+            .add_ion_conc(comp2, "absox", line_style='m--')  # obviously, z is not an ion!
+
+    # (optionally) change anion flux
+    if anion_flux:
+        comp2.xz = default_xz
+        comp2.xmz = (comp2.z * comp2.xi - comp2.xz * comp2.xi_temp) / comp2.xm
+        print('Anion flux with fixed anions having net charge', comp2.xmz, 'while a proportion of', (1 - comp2.ratio),
+              'of all impermeants are temporarily mobile anions of charge', comp2.xz)
+        z_graph = gui.add_graph() \
+            .add_ion_conc(comp, "z", line_style='m') \
+            .add_ion_conc(comp3, "z", line_style='m:') \
+            .add_ion_conc(comp2, "z", line_style='m--')  # obviously, z is not an ion!
+
+    # (optionally) change kcc2
+    prev_comp2_pkcc2 = comp2.pkcc2
+    if jkccup is not None:
+        comp2.jkccup = jkccup
+        g_graph = gui.add_graph() \
+            .add_ion_conc(comp, "pkcc2", line_style='k') \
+            .add_ion_conc(comp3, "pkcc2", line_style='k:') \
+            .add_ion_conc(comp2, "pkcc2", line_style='k--')
+
+    sim.run(continuefor=50, dt=dt, plot_update_interval=50, data_collect_interval=0.025)
+    print_concentrations([comp, comp2, comp3],
+                         title="Ion concentrations given anion flux from the dendritic compartment")
+
+    comp2.gx = prev_comp2_gx
+    comp2.jkccup = None
+    comp2.pkcc2 = prev_comp2_pkcc2
+
+    sim.run(continuefor=100, dt=dt, plot_update_interval=50, data_collect_interval=0.025)
+    print_concentrations([comp, comp2, comp3],
+                         title="Ion concentrations after anion flux from the dendritic compartment is halted")
+
+    return sim, gui
+
+
+def print_concentrations(compartments, title=""):
+    print(title)
+    print("{:^10s}".format(''), end='\t')
+    for comp in compartments:
+        print("{:^20s}".format(comp.name), end='\t')
+    print()
+    for ion in ["cli", "ki", "nai", "xi", "pkcc2", "gx", "w"]:
+        print("{:10s}".format(ion), end='')
+        for comp in compartments:
+            print("{:^2.18f}".format(comp[ion]), end='\t')
+        print()
 
 
 def anions():
@@ -104,7 +209,6 @@ def anions():
     # g.add_ion_conc(comp, "xi", line_style='b')  # blue
     # find steady-state values of ions
     sim.run(stop=25, dt=0.001, plot_update_interval=500, data_collect_interval=5, block_after=False)
-    # values from steady-state
     # soma.cli:0.01819948776551597
     # soma.ki:0.019909327159644736
     # soma.nai:0.11094252293794836
@@ -145,12 +249,12 @@ def anions():
         .add_ion_conc(comp3, "w", line_style=':b') \
         .add_ion_conc(comp2, "w", line_style='b--')
     j_graph = gui.add_graph() \
-        .add_ion_conc(diffusion_object, {"ionjnet": "cliplot"}, line_style='g') \
-        .add_ion_conc(diffusion_object, {"ionjnet": "kiplot"}, line_style='b') \
-        .add_ion_conc(diffusion_object, {"ionjnet": "naiplot"}, line_style='r') \
-        .add_ion_conc(diffusion_object2, {"ionjnet": "cliplot"}, line_style='--g') \
-        .add_ion_conc(diffusion_object2, {"ionjnet": "kiplot"}, line_style='--b') \
-        .add_ion_conc(diffusion_object2, {"ionjnet": "naiplot"}, line_style='--r') \
+        .add_ion_conc(diffusion_object, {"ionjnet": "cli"}, line_style='g') \
+        .add_ion_conc(diffusion_object, {"ionjnet": "ki"}, line_style='b') \
+        .add_ion_conc(diffusion_object, {"ionjnet": "nai"}, line_style='r') \
+        .add_ion_conc(diffusion_object2, {"ionjnet": "cli"}, line_style='--g') \
+        .add_ion_conc(diffusion_object2, {"ionjnet": "ki"}, line_style='--b') \
+        .add_ion_conc(diffusion_object2, {"ionjnet": "nai"}, line_style='--r') \
         .add_ion_conc(comp2, "dcli", line_style='--k') \
         .add_ion_conc(comp3, "dcli", line_style=':k') \
         .add_ion_conc(comp, "dcli", line_style='k') \
@@ -165,7 +269,7 @@ def anions():
         .add_ion_conc(comp2, "dxi", line_style='--g') \
         .add_ion_conc(comp3, "dxi", line_style=':g') \
         .add_ion_conc(comp, "dxi", line_style='g')
-    sim.run(continuefor=20, dt=dt, plot_update_interval=50, data_collect_interval=0.025, block_after=False)
+    sim.run(continuefor=20, dt=dt, plot_update_interval=50, data_collect_interval=0.025)
     print("Ion concentrations given diffusion between compartments")
     for ion in ["cli", "ki", "nai", "xi", "pkcc2", "gx", "w"]:
         print("{}.{}:{} \t {}.{}:{} ".format(comp.name, ion, comp[ion], comp2.name, ion, comp2[ion]))
@@ -195,12 +299,12 @@ def anions():
             .add_ion_conc(comp3, "pkcc2", line_style='k:') \
             .add_ion_conc(comp2, "pkcc2", line_style='k--')
 
-    sim.run(continuefor=25, dt=dt, plot_update_interval=50, data_collect_interval=0.025, block_after=False)
+    sim.run(continuefor=25, dt=dt, plot_update_interval=50, data_collect_interval=0.025)
     print("Ion concentrations given anion flux from the dendritic compartment")
     for ion in ["cli", "ki", "nai", "xi", "pkcc2", "gx", "w"]:
         print("{}.{}:{} \t {}.{}:{} ".format(comp.name, ion, comp[ion], comp2.name, ion, comp2[ion]))
 
-    sim.run(continuefor=26, dt=dt, plot_update_interval=50, data_collect_interval=0.025, block_after=False)
+    sim.run(continuefor=26, dt=dt, plot_update_interval=50, data_collect_interval=0.025)
     print("Ion concentrations given anion flux from the dendritic compartment")
     for ion in ["cli", "ki", "nai", "xi", "pkcc2", "gx", "w"]:
         print("{}.{}:{} \t {}.{}:{} ".format(comp.name, ion, comp[ion], comp2.name, ion, comp2[ion]))
@@ -210,14 +314,15 @@ def anions():
     comp2.pkcc2 = 1e-8
 
     # comp2.p=1e-4
-    sim.run(continuefor=100, dt=dt, plot_update_interval=50, data_collect_interval=0.025, block_after=False)
+    sim.run(continuefor=100, dt=dt, plot_update_interval=50, data_collect_interval=0.025)
     print("Ion concentrations after anion flux from the dendritic compartment is halted")
     for ion in ["cli", "ki", "nai", "xi", "pkcc2", "gx", "w"]:
         print("{}.{}:{} \t {}.{}:{} ".format(comp.name, ion, comp[ion], comp2.name, ion, comp2[ion], comp3.name, ion,
                                              comp[ion]))
 
-    sim.run(continuefor=2, dt=dt, plot_update_interval=50, data_collect_interval=0.025, block_after=False)
+    sim.run(continuefor=2, dt=dt, plot_update_interval=50, data_collect_interval=0.025)
     return sim, gui
+
 
 def single():
     """
@@ -246,29 +351,19 @@ def single():
     comp.gx = 1e-8
     sim.run(continuefor=50, dt=dt, plot_update_interval=50, data_collect_interval=0.025, block_after=False)
     comp.gx = 0e-8
-    sim.run(continuefor=25, dt=dt, plot_update_interval=50, data_collect_interval=0.025, block_after=True)
+    sim.run(continuefor=25, dt=dt, plot_update_interval=50, data_collect_interval=0.025, block_after=False)
     return sim, gui
 
-usage_help = """
-            main.py
-    Usage:
-    -h, --help              show this help menu
-    -b, --block             block simulation
-                            (control not returned to user)
-    -c, --close             close all previous figures
-    -d, --dispose           close all figures, including those produced during simulation
-                            (control always returned to user; overrides --block)
-                """
 
 if __name__ == "__main__":
     argv = sys.argv[1:]  # (first arg is 'python')
     sim = Simulator.get_instance()
     gui = sim.gui()
-    block_after = False
+    block_after = True
     dispose_after = False
 
     try:
-        opts, args = getopt.getopt(argv, "hbcd", ["help", "block", "close", "dispose"])
+        opts, args = getopt.getopt(argv, "hscd", ["help", "save", "close", "dispose"])
     except getopt.GetoptError:
         print(usage_help)
         sys.exit(2)
@@ -276,8 +371,8 @@ if __name__ == "__main__":
         if opt in ("-h", "--help"):
             print(usage_help)
             sys.exit()
-        elif opt in ("-b", "--block"):
-            block_after = True
+        elif opt in ("-s", "--save"):
+            block_after = False
         elif opt in ("-c", "--close"):
             print("closing...")
             gui.close_graphs()
@@ -285,7 +380,7 @@ if __name__ == "__main__":
             dispose_after = True
     sim.dispose()
     print(args)
-    [sim, gui] = anions()
+    [sim, gui] = main()
 
     if dispose_after:
         sim.dispose()

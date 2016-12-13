@@ -65,8 +65,8 @@ class Graph(object):
                         assert y_object[key][val] or y_object[key][val] == 0
             else:
                 assert False
-        except KeyError:
-            print("variable {} or {} not present in {} or {}".format(x_var, y_var, x_object, y_object))
+        except KeyError as keyerror:
+            print("{}: variable {} or {} not present in {} or {}".format(keyerror, x_var, y_var, x_object, y_object))
         else:
             if isinstance(y_var, str):
                 label = ".".join([y_object.name, y_var])

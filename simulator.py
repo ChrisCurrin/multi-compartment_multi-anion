@@ -63,7 +63,7 @@ class Simulator(object):
 
     @classmethod
     def run(cls, continuefor: float = None, stop: float = None, dt: float = None, plot_update_interval: float = 100,
-            data_collect_interval: float = None, block_after=True):
+            data_collect_interval: float = None, block_after=False):
         """
         Run a time-based simulation.
         Each time-registered object is moved forward by dt

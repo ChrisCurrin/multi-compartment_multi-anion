@@ -24,7 +24,9 @@ class Compartment(TimeMixin):
 
     """
 
-    def __init__(self, name, radius=default_radius, length=default_length, pkcc2=1e-8, z=-0.85, nai=50e-3, ki=80e-3, p=default_p, cli=0):
+    def __init__(self, name, radius=default_radius, length=default_length,
+                 nai=50e-3, ki=80e-3, cli=0,
+                 z=-0.85, gx = 0e-9, pkcc2=1e-8, p=default_p):
         self.unique_id = str(time.time())
         self.name = name
         self.r = radius  # in um
@@ -52,13 +54,11 @@ class Compartment(TimeMixin):
         else:
             self.xi = (self.cli - self.ki - self.nai) / self.z
 
-        print(self.cli, self.xi)
-
         # default conductance of impermeant anions
-        self.gx = 0e-9
+        self.gx = gx
 
         if self.xi < 0 or self.cli < 0:
-            print("""Initial choice of either ki or nai resulted in negative concentration of
+            raise Exception("""Initial choice of either ki or nai resulted in negative concentration of
                                     intracellular ion - choose different starting values.""")
         # intracellular osmolarity
         self.osi = self.nai + self.ki + self.cli + self.xi
@@ -67,6 +67,7 @@ class Compartment(TimeMixin):
         self.nao = nao
         self.ko = ko
         self.clo = clo
+
         # define step attributes for t=0
 
         # define constant element of pump rate
@@ -81,23 +82,25 @@ class Compartment(TimeMixin):
         self.ecl = RTF * np.log(self.cli / self.clo)
         self.jkcc2 = self.pkcc2 * (self.ek - self.ecl)  # Doyon
 
-        # register component with simulator
-        simulator.Simulator.get_instance().register_compartment(self)
-
         # delta(anions of a fixed charge)
-        self.an = False
         self.ratio = 0.98
         self.xm = self.xi * self.ratio
         self.xi_temp = self.xi * (1 - self.ratio)
         self.xmz = self.z
         self.xz = self.z
-
-        self.jkccup = False
         self.absox = self.xi * self.w
+
+        # ramp kcc2
+        self.jkccup = None
+
+        # for plotting of changes
         self.dnai = 0
         self.dki = 0
         self.dcli = 0
         self.dxi = 0
+
+        # register component with simulator
+        simulator.Simulator.get_instance().register_compartment(self)
 
     def step(self, _time: Time = None):
         """
@@ -121,16 +124,9 @@ class Compartment(TimeMixin):
         # kcc2
         # self.jkcc2 = (gk * self.pkcc2 * (self.ki * self.clo - self.ki * self.cli))  # Fraser and Huang
 
-        if self.jkccup:
-            self.pkcc2 += 5e-12
+        if self.jkccup is not None:
+            self.pkcc2 += self.jkccup
         self.jkcc2 = self.pkcc2 * (self.ek - self.ecl)  # Doyon
-
-        if self.an:
-            self.xz = -1.0
-            self.xmz = (self.z * self.xi - self.xz * self.xi_temp) / self.xm
-            print('Anion flux with fixed anions having net charge', self.xmz, 'while a proportion of', (1 - self.ratio),
-                  'of all impermeants are temporarily mobile anions of charge', self.xz)
-            self.an = False
 
         self.z = (self.xmz * self.xm + self.xz * self.xi_temp) / self.xi
 
@@ -139,13 +135,16 @@ class Compartment(TimeMixin):
         dnai = -_time.dt * self.Ar * (gna * (self.V - RTF * np.log(self.nao / self.nai)) + cna * self.jp)
         dki = -_time.dt * self.Ar * (gk * (self.V - RTF * np.log(self.ko / self.ki)) - ck * self.jp - self.jkcc2)
         dcli = _time.dt * self.Ar * (gcl * (self.V + RTF * np.log(self.clo / self.cli)) + self.jkcc2)
-        dxi = -_time.dt * self.Ar * self.xz * (self.gx * (self.V - RTF / self.xz * np.log(xo_z / self.xi_temp)))
+        # dxi = -_time.dt * self.Ar * self.xz * (self.gx * (self.V - RTF / self.xz * np.log(xo_z / self.xi_temp)))
+
         self.dnai = dnai
         self.dki = dki
         self.dcli = dcli
+        if self.gx != 0:
+            dxi = 5e-8
+        else:
+            dxi = 0
         self.dxi = dxi
-        #if self.gx != 0:
-            #dxi = 5e-8
 
         self.ek = RTF * np.log(self.ko / self.ki)
         self.ecl = RTF * np.log(self.cli / self.clo)

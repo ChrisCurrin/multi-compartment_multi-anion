@@ -21,9 +21,7 @@ class Diffusion(TimeMixin):
         self.comp_b = comp_b
         self.ions = ions
         self.ionjnet = ions.copy()
-        for ion, D in self.ions.items():
-            self.ionjnet[ion + 'plot'] = D
-        self.ionjnet['cli'] = 0
+
         # difference in distance between compartment midpoints
         self.dx = self.comp_a.L / 2 + self.comp_b.L / 2
         # register component with simulator
