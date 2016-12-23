@@ -226,6 +226,12 @@ class Compartment(TimeMixin):
         simulator.Simulator.get_instance().register_compartment(comp)
         return comp
 
+    def mols(self,ion):
+        """
+        :return: the mols for a concentration (cli etc) / flux (dcli etc)
+        """
+        return self.ion*self.w
+
     def __getitem__(self, item):
         return self.__dict__[item]
 

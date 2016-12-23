@@ -91,6 +91,16 @@ class Diffusion(TimeMixin):
         # self.dx = self.comp_a.L / 2 + self.comp_b.L / 2
         return -mu * valence(ion) * comp[ion] * (dV / self.dx)
 
+    def mols_flux(self, ion: str):
+        """
+        :return: the mols for a flux / concentration
+        """
+        if self.ionjnet[ion]>=0:
+            wflux=self.comp_b.w
+        else:
+            wflux=self.comp_a.w
+        return abs(self.ionjnet[ion])*wflux
+
     @staticmethod
     def D_to_mu(D: float, ion: str):
         """
