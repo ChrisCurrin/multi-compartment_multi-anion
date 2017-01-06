@@ -144,7 +144,7 @@ class Compartment(TimeMixin):
             dxi = 5e-8
         else:
             dxi = 0
-        self.dxi = dxi
+        self.dxi = dxi/self.w
 
         self.ek = RTF * np.log(self.ko / self.ki)
         self.ecl = RTF * np.log(self.cli / self.clo)
@@ -230,7 +230,7 @@ class Compartment(TimeMixin):
         """
         :return: the mols for a concentration (cli etc) / flux (dcli etc)
         """
-        return self.ion*self.w
+        return ion*self.w
 
     def __getitem__(self, item):
         return self.__dict__[item]
