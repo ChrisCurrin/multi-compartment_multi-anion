@@ -2,6 +2,7 @@ import simulator
 from diffusion import Diffusion
 from compartment import Compartment
 from unittest import TestCase
+from common import default_length
 
 
 class TestDiffusion(TestCase):
@@ -135,13 +136,13 @@ class TestDiffusion(TestCase):
         self.assertEqual(self.comp.cli, self.comp2.cli)
 
     def test_middle(self):
-        self.compBase = Compartment("c1", length=100, pkcc2=1e-8, z=-0.85,
+        self.compBase = Compartment("c1", pkcc2=1e-8, z=-0.85,
                                     cli=0.015292947537423218,
                                     ki=0.023836660428807395,
                                     nai=0.1135388427892471)
-
         self.comp = self.compBase.copy("left")
         self.comp2 = self.comp.copy("right")
+
         # set diffusion value
         cli_D = 2.03  # um2/ms
         cli_D *= 1e-5 ** 2  # um2 to dm2 (D in dm2/ms)
@@ -162,6 +163,44 @@ class TestDiffusion(TestCase):
         self.compBase.gx = 0e-8
         self.sim.run(continuefor=20, dt=0.001, block_after=False)
         self.assertEqual(self.comp.cli, self.comp2.cli)
+
+    def test_mols(self):
+        self.compBase = Compartment("c1", pkcc2=1e-8, z=-0.85,
+                                    cli=0.015292947537423218,
+                                    ki=0.023836660428807395,
+                                    nai=0.1135388427892471)
+
+        self.comp = self.compBase.copy("left")
+        self.comp2 = self.comp.copy("right")
+        self.compSingle = Compartment("cs", pkcc2=1e-8, z=-0.85,
+                                    cli=0.015292947537423218,
+                                    ki=0.023836660428807395,
+                                    nai=0.1135388427892471,
+                                    length = 3*default_length)
+        # set diffusion value
+        cli_D = 2.03  # um2/ms
+        cli_D *= 1e-5 ** 2  # um2 to dm2 (D in dm2/ms)
+        ki_D = 1.96  # um2/ms
+        ki_D *= 1e-5 ** 2  # um2 to dm2 (D in dm2/ms)
+        nai_D = 1.33
+        nai_D *= 1e-5 ** 2
+        # create diffusion connection
+        diffusion_object = Diffusion(self.comp, self.compBase, ions={'cli': cli_D, 'ki': ki_D, 'nai': nai_D})
+        diffusion_object = Diffusion(self.comp2, self.compBase, ions={'cli': cli_D, 'ki': ki_D, 'nai': nai_D})
+
+        self.sim.run(stop=100, dt=0.001, block_after=False)
+
+        self.compBase.gx = 1e-8
+        self.compSingle.gx = 1e-8
+        self.sim.run(continuefor=20, dt=0.001, block_after=False)
+
+        xmol_3 = self.compBase.mols(self.compBase.xi) + self.comp.mols(self.comp.xi) + self.comp2.mols(self.comp2.xi)
+        xmol_single = self.compSingle.mols(self.compSingle.xi)
+        self.assertAlmostEqual(xmol_3,xmol_single)
+
+        cmol_3 = self.compBase.mols(self.compBase.cli) + self.comp.mols(self.comp.cli) + self.comp2.mols(self.comp2.cli)
+        cmol_single = self.compSingle.mols(self.compSingle.cli)
+        self.assertAlmostEqual(cmol_3, cmol_single)
 
 class SimpleCompartment(Compartment):
     """
