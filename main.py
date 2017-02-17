@@ -149,6 +149,11 @@ def main_old(cli_D=2.03, new_gx=1e-8, anion_flux=True, default_xz=-0.85, jkccup=
                        ki=0.019909567493822927,
                        nai=0.11094226350779378)
 
+    comp = Compartment("soma", z=-0.85
+                       , cli=0.00409925284075134,
+                       ki=0.1009567493822927,
+                       nai=0.0214226350779378)
+
     # find steady-state values of ions
     sim.run(stop=25, dt=0.001, plot_update_interval=500, data_collect_interval=5, block_after=False)
 
@@ -492,7 +497,8 @@ if __name__ == "__main__":
             dispose_after = True
     sim.dispose()
     print(args)
-    [sim, gui] = main(new_gx=1,jkccup=None,anion_flux=True,default_xz=-1,nrcomps=2)
+    #[sim, gui] = main(new_gx=1,jkccup=None,anion_flux=True,default_xz=-1,nrcomps=2)
+    [sim, gui] = main_old()
 
     if dispose_after:
         sim.dispose()

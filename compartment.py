@@ -35,6 +35,7 @@ class Compartment(TimeMixin):
         self.z = z  # intracellular charge of impermeant anions
         self.w = np.pi * self.r ** 2 * self.L  # initial volume in liters
         self.Ar = 4e6  # area constant (F and H method)
+        self.Ar=2.0/self.r
         self.C = 7e-6  # capacitance (F/dm^2)
         # (F/C*area scaling constant)
         self.FinvCAr = F / (self.C * self.Ar)
