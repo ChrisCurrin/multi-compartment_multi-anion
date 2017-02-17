@@ -9,6 +9,7 @@ from simulator import Simulator
 from compartment import Compartment
 from diffusion import Diffusion
 from common import default_length_short, default_radius_short
+from colormap import cmap
 
 usage_help = \
     """
@@ -62,6 +63,16 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
         compr.append(comp.copy("dendrite right "+str(i+2)))
         diffusion_object.append(Diffusion(compr[-2], compr[-1], ions={'cli': cli_D, 'ki': ki_D, 'nai': nai_D}))
 
+    # heatmap incorporating compartment heights
+    sc=1e5
+    hts=[int(compl.height()*sc),int(comp.height()*sc)]
+    df=[round(compl.ecl,5),round(comp.ecl,5)]
+    for i in compr:
+        hts.append(int(i.height()*sc))
+        df.append(round(i.ecl,5))
+    print(hts,df)
+    cmap(df,hts)
+
     voltage_reversal_graph_comp = gui.add_graph() \
         .add_ion_conc(comp, "ecl", line_style='g', y_units_scale=1000, y_plot_units='mV') \
         .add_ion_conc(comp, "ek", line_style='b', y_units_scale=1000, y_plot_units='mV') \
@@ -110,6 +121,16 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
     sim.run(continuefor=100, dt=dt, plot_update_interval=50, data_collect_interval=0.025)
     print_concentrations([comp, compl, compr[-1]],
                          title="Ion concentrations after anion flux from the dendritic compartment is halted")
+
+    # heatmap incorporating compartment heights
+    sc=1e5
+    hts=[int(compl.height()*sc),int(comp.height()*sc)]
+    df=[round(compl.ecl,5),round(comp.ecl,5)]
+    for i in compr:
+        hts.append(int(i.height()*sc))
+        df.append(round(i.ecl,5))
+    print(hts,df)
+    cmap(df,hts)
 
     return sim, gui
 
@@ -471,7 +492,7 @@ if __name__ == "__main__":
             dispose_after = True
     sim.dispose()
     print(args)
-    [sim, gui] = main()
+    [sim, gui] = main(new_gx=1,jkccup=None,anion_flux=True,default_xz=-1,nrcomps=2)
 
     if dispose_after:
         sim.dispose()
