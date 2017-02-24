@@ -34,14 +34,14 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
     dt = 0.001
 
     comp = Compartment("reference", z=-0.85
-                       , cli=0.01819925284075134,
-                       ki=0.019909567493822927,
-                       nai=0.11094226350779378,
-                       length=default_length_short,
+                       , cli=0.00433925284075134,
+                       ki=0.1109567493822927,
+                       nai=0.0255226350779378,
+                       length=default_length_short/(3.0+nrcomps),
                        radius=default_radius_short)
 
     # find steady-state values of ions
-    sim.run(stop=25, dt=0.001, plot_update_interval=500, data_collect_interval=5, block_after=False)
+    sim.run(stop=50, dt=0.001, plot_update_interval=500, data_collect_interval=5, block_after=False)
 
     # set diffusion value
     cli_D *= 1e-5 ** 2 # um2 to dm2 (D in dm2/ms)
@@ -82,6 +82,16 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
         .add_ion_conc(compr[-1], "ecl", line_style='g', y_units_scale=1000, y_plot_units='mV') \
         .add_ion_conc(compr[-1], "ek", line_style='b', y_units_scale=1000, y_plot_units='mV') \
         .add_voltage(compr[-1], line_style='k', y_units_scale=1000, y_plot_units='mV')
+
+    voltage_reversal_graph_compl = gui.add_graph() \
+        .add_ion_conc(compl, "ecl", line_style='g', y_units_scale=1000, y_plot_units='mV') \
+        .add_ion_conc(compl, "ek", line_style='b', y_units_scale=1000, y_plot_units='mV') \
+        .add_voltage(compl, line_style='k', y_units_scale=1000, y_plot_units='mV')
+
+    voltage_reversal_graph_compr1 = gui.add_graph() \
+        .add_ion_conc(compr[0], "ecl", line_style='g', y_units_scale=1000, y_plot_units='mV') \
+        .add_ion_conc(compr[0], "ek", line_style='b', y_units_scale=1000, y_plot_units='mV') \
+        .add_voltage(compr[0], line_style='k', y_units_scale=1000, y_plot_units='mV')
 
     # run simulation with diffusion
     sim.run(continuefor=20, dt=dt, plot_update_interval=50, data_collect_interval=0.025)
@@ -150,12 +160,12 @@ def main_old(cli_D=2.03, new_gx=1e-8, anion_flux=True, default_xz=-0.85, jkccup=
                        nai=0.11094226350779378)
 
     comp = Compartment("soma", z=-0.85
-                       , cli=0.00409925284075134,
-                       ki=0.1009567493822927,
-                       nai=0.0214226350779378)
+                       , cli=0.00433925284075134,
+                       ki=0.1109567493822927,
+                       nai=0.0255226350779378)
 
     # find steady-state values of ions
-    sim.run(stop=25, dt=0.001, plot_update_interval=500, data_collect_interval=5, block_after=False)
+    sim.run(stop=50, dt=0.001, plot_update_interval=500, data_collect_interval=5, block_after=False)
 
     # create copies on either side
     comp2 = comp.copy("dendrite")
@@ -497,8 +507,8 @@ if __name__ == "__main__":
             dispose_after = True
     sim.dispose()
     print(args)
-    #[sim, gui] = main(new_gx=1,jkccup=None,anion_flux=True,default_xz=-1,nrcomps=2)
-    [sim, gui] = main_old()
+    [sim, gui] = main(new_gx=1,jkccup=None,anion_flux=True,default_xz=-1,nrcomps=2)
+    #[sim, gui] = main_old()
 
     if dispose_after:
         sim.dispose()

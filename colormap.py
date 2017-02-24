@@ -8,7 +8,8 @@ def cmap(matrix=[1,2,3,4,5],heights=[1,2,3,4,5]):
     a=[]
     for j in range(len(heights)):
         for i in range(heights[j]):
-            a.append([matrix[j]*1000]*4)
+            a.append([matrix[j]*1000]*5)
+        a.append([np.min(matrix)*1000-2]*5)
     print(a)
     plt.figure()
     plt.imshow(a, cmap='Blues', interpolation='nearest')

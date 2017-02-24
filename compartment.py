@@ -142,7 +142,7 @@ class Compartment(TimeMixin):
         self.dki = dki
         self.dcli = dcli
         if self.gx != 0:
-            dxi = 5e-9
+            dxi = 1e-8
         else:
             dxi = 0
 

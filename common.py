@@ -30,6 +30,6 @@ default_radius = 5 * 1e-5  # radius in um convert to dm
 default_length = 100 * 1e-5  # length in um converted to dm
 
 default_radius_short = 0.5 * 1e-5  # radius in um convert to dm
-default_length_short = 10 * 1e-5  # length in um converted to dm
+default_length_short = 130 * 1e-5  # length in um converted to dm
 
 n = 200  # points to plot
