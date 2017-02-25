@@ -10,6 +10,7 @@ from compartment import Compartment
 from diffusion import Diffusion
 from common import default_length_short, default_radius_short
 from colormap import cmap
+import numpy as np
 
 usage_help = \
     """
@@ -23,7 +24,7 @@ usage_help = \
                             (control always returned to user; overrides --block)
 """
 
-def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-11, nrcomps=2):
+def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-12, nrcomps=2, dz=1e-7, textra=100):
     """
     cli_D # um2/ms
     :return: sim, gui: it is useful to return these objects for access after simulation
@@ -66,12 +67,17 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
     # heatmap incorporating compartment heights
     sc=1e5
     hts=[int(compl.height()*sc),int(comp.height()*sc)]
-    df=[round(compl.ecl,5),round(comp.ecl,5)]
+    ecl=[round(compl.ecl,5),round(comp.ecl,5)]
+    vm=[round(compl.V,5),round(comp.V,5)]
     for i in compr:
         hts.append(int(i.height()*sc))
-        df.append(round(i.ecl,5))
-    print(hts,df)
-    cmap(df,hts)
+        ecl.append(round(i.ecl,5))
+        vm.append(round(i.V,5))
+    df=np.subtract(vm,ecl)
+    totalh = sum(hts)
+    cmap(ecl,hts,totalh)
+    cmap(vm,hts,totalh,r=-100,h=-50)
+    cmap(df,hts,totalh,r=min(df)*1000-1,h=max(df)*1000)
 
     voltage_reversal_graph_comp = gui.add_graph() \
         .add_ion_conc(comp, "ecl", line_style='g', y_units_scale=1000, y_plot_units='mV') \
@@ -101,6 +107,12 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
     # (optionally) change anion conductance
     prev_comp_gx = comp.gx
     comp.gx = new_gx
+    comp.dz = dz
+
+    if dz!=0:
+        z_graph = gui.add_graph() \
+            .add_ion_conc(comp, "z", line_style='m')
+
     if comp.gx > 0:
         x_graph = gui.add_graph() \
             .add_ion_conc(comp, "absox", line_style='m')
@@ -121,7 +133,14 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
         g_graph = gui.add_graph() \
             .add_ion_conc(comp, "pkcc2", line_style='k')
 
-    sim.run(continuefor=50, dt=dt, plot_update_interval=50, data_collect_interval=0.025)
+    vol_graph = gui.add_graph() \
+        .add_ion_conc(comp, "w", line_style='b') \
+        .add_ion_conc(compl, "w", line_style=':b') \
+        .add_ion_conc(compr[0], "w", line_style='b--') \
+        .add_ion_conc(compr[1], "w", line_style='b--') \
+        .add_ion_conc(compr[2], "w", line_style='b--')
+
+    sim.run(continuefor=textra, dt=dt, plot_update_interval=50, data_collect_interval=0.025)
     print_concentrations([comp, compl, compr[-1]],
                          title="Ion concentrations given anion flux from the dendritic compartment")
 
@@ -133,14 +152,17 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
                          title="Ion concentrations after anion flux from the dendritic compartment is halted")
 
     # heatmap incorporating compartment heights
-    sc=1e5
     hts=[int(compl.height()*sc),int(comp.height()*sc)]
-    df=[round(compl.ecl,5),round(comp.ecl,5)]
+    ecl=[round(compl.ecl,5),round(comp.ecl,5)]
+    vm=[round(compl.V,5),round(comp.V,5)]
     for i in compr:
         hts.append(int(i.height()*sc))
-        df.append(round(i.ecl,5))
-    print(hts,df)
-    cmap(df,hts)
+        ecl.append(round(i.ecl,5))
+        vm.append(round(i.V,5))
+    df=np.subtract(vm,ecl)
+    cmap(ecl,hts,totalh)
+    cmap(vm,hts,totalh,r=min(vm)*1000-1,h=max(vm)*1000)
+    cmap(df,hts,totalh,r=min(df)*1000-1,h=max(df)*1000)
 
     return sim, gui
 
@@ -507,7 +529,7 @@ if __name__ == "__main__":
             dispose_after = True
     sim.dispose()
     print(args)
-    [sim, gui] = main(new_gx=1,jkccup=None,anion_flux=True,default_xz=-1,nrcomps=2)
+    [sim, gui] = main(new_gx=1,jkccup=0e-12,anion_flux=False,default_xz=-1,nrcomps=2,dz=0)
     #[sim, gui] = main_old()
 
     if dispose_after:

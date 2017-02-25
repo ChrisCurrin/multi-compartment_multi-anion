@@ -35,16 +35,16 @@ class Diffusion(TimeMixin):
             # if ion == 'cli':
             # print (ion, D)
             # F in M/ms * dm
-            F = self.ficks_law(ion, D / _time.dt)
+            F = self.ficks_law(ion, D)
             # drift in M/ms dm
-            drift_a = self.ohms_law(self.comp_a, ion, D / _time.dt)
+            drift_a = self.ohms_law(self.comp_a, ion, D)
             # negative to account for dV calculated from comp_a to comp_b only (and not comp_b to comp_a)
-            drift_b = -1 * self.ohms_law(self.comp_b, ion, D / _time.dt)
+            drift_b = -1 * self.ohms_law(self.comp_b, ion, D)
             d_drift = (drift_a + drift_b)
-            j_net = (F + d_drift) * (_time.dt / self.dx)
-            simulator.Simulator.get_instance().to_update(self.comp_a, ion, j_net, deferred_update.UpdateType.CHANGE)
+            j_net = (F + d_drift) * (_time.dt)
+            simulator.Simulator.get_instance().to_update(self.comp_a, ion, j_net*self.comp_a.Ar, deferred_update.UpdateType.CHANGE)
             # -j_net for comp_b as it is equal but opposite of j_net w.r.t. comp_a
-            simulator.Simulator.get_instance().to_update(self.comp_b, ion, -j_net, deferred_update.UpdateType.CHANGE)
+            simulator.Simulator.get_instance().to_update(self.comp_b, ion, -j_net*self.comp_b.Ar, deferred_update.UpdateType.CHANGE)
             self.ionjnet[ion] = j_net
 
     def ficks_law(self, ion: str, D: float):

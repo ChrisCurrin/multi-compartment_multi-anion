@@ -34,8 +34,8 @@ class Compartment(TimeMixin):
         self.pkcc2 = pkcc2  # strength of kcc2
         self.z = z  # intracellular charge of impermeant anions
         self.w = np.pi * self.r ** 2 * self.L  # initial volume in liters
-        self.Ar = 4e6  # area constant (F and H method)
-        self.Ar=2.0/self.r
+        #self.Ar = 4e6
+        self.Ar=2.0/self.r # area constant (F and H method)
         self.C = 7e-6  # capacitance (F/dm^2)
         # (F/C*area scaling constant)
         self.FinvCAr = F / (self.C * self.Ar)
@@ -99,6 +99,7 @@ class Compartment(TimeMixin):
         self.dki = 0
         self.dcli = 0
         self.dxi = 0
+        self.dz = 0
 
         # register component with simulator
         simulator.Simulator.get_instance().register_compartment(self)
@@ -129,6 +130,7 @@ class Compartment(TimeMixin):
             self.pkcc2 += self.jkccup
         self.jkcc2 = self.pkcc2 * (self.ek - self.ecl)  # Doyon
 
+        self.xz -= self.dz
         self.z = (self.xmz * self.xm + self.xz * self.xi_temp) / self.xi
 
         # ionic flux equations
@@ -142,16 +144,12 @@ class Compartment(TimeMixin):
         self.dki = dki
         self.dcli = dcli
         if self.gx != 0:
-            dxi = 1e-8
+            dxi = 1e-10*self.Ar*_time.dt
         else:
             dxi = 0
 
         self.ek = RTF * np.log(self.ko / self.ki)
         self.ecl = RTF * np.log(self.cli / self.clo)
-        # increment concentrations
-        # self.nai += dna
-        # self.ki += dk
-        # self.cli += dcl
 
         simulator.Simulator.get_instance().to_update_multi(self, {
             'nai': {
