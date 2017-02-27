@@ -144,7 +144,7 @@ class Compartment(TimeMixin):
         self.dki = dki
         self.dcli = dcli
         if self.gx != 0:
-            dxi = 10e-10*self.Ar*_time.dt
+            dxi = 1e-10*self.Ar*_time.dt
         else:
             dxi = 0
 
@@ -229,9 +229,6 @@ class Compartment(TimeMixin):
         :return: the mols for a concentration (cli etc) / flux (dcli etc)
         """
         return ion*self.w
-
-    def height(self):
-        return self.w/(self.r**2*np.pi)
 
     def __getitem__(self, item):
         return self.__dict__[item]

@@ -59,7 +59,7 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
 
     # create copies on either side and connect with Diffusion (left first, just one compartment)
     compl=comp.copy("dendrite left")
-    diffusion_object.append(Diffusion(compl, comp, ions={'cli': cli_D, 'ki': ki_D, 'nai': nai_D}))
+    diffusion_object.append(Diffusion(comp, compl, ions={'cli': cli_D, 'ki': ki_D, 'nai': nai_D}))
 
     # right compartments
     compr=[]
@@ -73,18 +73,18 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
     sc=1e5
     if grow==1:
         sc=1e6
-    hts=[int(compl.height()*sc),int(comp.height()*sc)]
+    hts=[int(compl.L*sc),int(comp.L*sc)]
     ecl=[round(compl.ecl,5),round(comp.ecl,5)]
     vm=[round(compl.V,5),round(comp.V,5)]
     for i in compr:
-        hts.append(int(i.height()*sc))
+        hts.append(int(i.L*sc))
         ecl.append(round(i.ecl,5))
         vm.append(round(i.V,5))
     df=np.subtract(vm,ecl)
     totalh = sum(hts)
     cmap(ecl,hts,totalh)
-    cmap(vm,hts,totalh,r=-100,h=-50,color='Greys')
-    cmap(df,hts,totalh,r=min(df)*1000-1,h=max(df)*1000,color='PuRd')
+    cmap(vm,hts,totalh,r=-100,h=-70,color='Greys')
+    cmap(df,hts,totalh,r=10,h=-10,color='seismic')
 
     voltage_reversal_graph_comp = gui.add_graph() \
         .add_ion_conc(comp, "ecl", line_style='g', y_units_scale=1000, y_plot_units='mV') \
@@ -143,9 +143,9 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
     vol_graph = gui.add_graph() \
         .add_ion_conc(comp, "w", line_style='b') \
         .add_ion_conc(compl, "w", line_style=':b') \
-        .add_ion_conc(compr[0], "w", line_style='b--') \
-        .add_ion_conc(compr[1], "w", line_style='b--') \
-        .add_ion_conc(compr[2], "w", line_style='b--')
+        .add_ion_conc(compr[0], "w", line_style='b--') #\
+        #.add_ion_conc(compr[1], "w", line_style='b--') \
+        #.add_ion_conc(compr[2], "w", line_style='b--')
 
     sim.run(continuefor=textra, dt=dt, plot_update_interval=50, data_collect_interval=0.025)
     print_concentrations([comp, compl, compr[-1]],
@@ -508,18 +508,18 @@ def single():
     return sim, gui
 
 def heatmap(compl,comp,compr,sc,totalh,all=0):
-    hts=[int(compl.height()*sc),int(comp.height()*sc)]
+    hts=[int(compl.L*sc),int(comp.L*sc)]
     ecl=[round(compl.ecl,5),round(comp.ecl,5)]
     vm=[round(compl.V,5),round(comp.V,5)]
     for i in compr:
-        hts.append(int(i.height()*sc))
+        hts.append(int(i.L*sc))
         ecl.append(round(i.ecl,5))
         vm.append(round(i.V,5))
     df=np.subtract(vm,ecl)
-    cmap(df,hts,totalh,r=min(df)*1000-1,h=max(df)*1000,color='PuRd')
+    cmap(df,hts,totalh,r=-10,h=10,color='seismic')
     if all != 0:
         cmap(ecl,hts,totalh)
-        cmap(vm,hts,totalh,r=min(vm)*1000-1,h=max(vm)*1000,color='Greys')
+        cmap(vm,hts,totalh,-100,h=-70,color='Greys')
     return
 
 if __name__ == "__main__":
@@ -547,7 +547,7 @@ if __name__ == "__main__":
             dispose_after = True
     sim.dispose()
     print(args)
-    [sim, gui] = main(new_gx=1,jkccup=0e-12,anion_flux=False,default_xz=-1,nrcomps=2,dz=0,textra=100,grow=1)
+    [sim, gui] = main(new_gx=1,jkccup=0e-12,anion_flux=True,default_xz=-1,nrcomps=0,dz=0,textra=180,grow=0)
     #[sim, gui] = main_old()
 
     if dispose_after:
