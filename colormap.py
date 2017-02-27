@@ -4,7 +4,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-def cmap(matrix=[1,2,3,4,5],heights=[1,2,3,4,5],totalhts=0,r=-90,h=-85):
+def cmap(matrix=[1,2,3,4,5],heights=[1,2,3,4,5],totalhts=0,r=-90,h=-85,color='Blues'):
     blank_row=[r]*5
     a=[blank_row]
     change=int(sum(heights)-totalhts)
@@ -19,7 +19,7 @@ def cmap(matrix=[1,2,3,4,5],heights=[1,2,3,4,5],totalhts=0,r=-90,h=-85):
         for i in range(change):
             a.append([r]*5)
     plt.figure()
-    plt.imshow(a, cmap='Blues', interpolation='nearest', vmin=r, vmax=h)
+    plt.imshow(a, cmap=color, interpolation='nearest', vmin=r, vmax=h)
     plt.colorbar()
     plt.axis('off')
     plt.show()

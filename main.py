@@ -24,7 +24,7 @@ usage_help = \
                             (control always returned to user; overrides --block)
 """
 
-def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-12, nrcomps=2, dz=1e-7, textra=100):
+def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-12, nrcomps=2, dz=1e-7, textra=100, grow=0):
     """
     cli_D # um2/ms
     :return: sim, gui: it is useful to return these objects for access after simulation
@@ -34,11 +34,16 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
     gui = sim.gui()
     dt = 0.001
 
+    length = default_length_short
+
+    if grow==1:
+        length=5e-5
+
     comp = Compartment("reference", z=-0.85
                        , cli=0.00433925284075134,
                        ki=0.1109567493822927,
                        nai=0.0255226350779378,
-                       length=default_length_short/(3.0+nrcomps),
+                       length=length/(3.0+nrcomps),
                        radius=default_radius_short)
 
     # find steady-state values of ions
@@ -66,6 +71,8 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
 
     # heatmap incorporating compartment heights
     sc=1e5
+    if grow==1:
+        sc=1e6
     hts=[int(compl.height()*sc),int(comp.height()*sc)]
     ecl=[round(compl.ecl,5),round(comp.ecl,5)]
     vm=[round(compl.V,5),round(comp.V,5)]
@@ -76,8 +83,8 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
     df=np.subtract(vm,ecl)
     totalh = sum(hts)
     cmap(ecl,hts,totalh)
-    cmap(vm,hts,totalh,r=-100,h=-50)
-    cmap(df,hts,totalh,r=min(df)*1000-1,h=max(df)*1000)
+    cmap(vm,hts,totalh,r=-100,h=-50,color='Greys')
+    cmap(df,hts,totalh,r=min(df)*1000-1,h=max(df)*1000,color='PuRd')
 
     voltage_reversal_graph_comp = gui.add_graph() \
         .add_ion_conc(comp, "ecl", line_style='g', y_units_scale=1000, y_plot_units='mV') \
@@ -147,22 +154,19 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
     comp.gx = prev_comp_gx
     comp.jkccup = None
 
+    if grow==1:
+        for a in compr:
+            heatmap(compl,comp,compr,sc,totalh)
+            a.gx = 1
+            sim.run(continuefor=textra,dt=dt,plot_update_interval=50,data_collect_interval=0.025)
+            a.gx = 0
+
     sim.run(continuefor=100, dt=dt, plot_update_interval=50, data_collect_interval=0.025)
     print_concentrations([comp, compl, compr[-1]],
                          title="Ion concentrations after anion flux from the dendritic compartment is halted")
 
     # heatmap incorporating compartment heights
-    hts=[int(compl.height()*sc),int(comp.height()*sc)]
-    ecl=[round(compl.ecl,5),round(comp.ecl,5)]
-    vm=[round(compl.V,5),round(comp.V,5)]
-    for i in compr:
-        hts.append(int(i.height()*sc))
-        ecl.append(round(i.ecl,5))
-        vm.append(round(i.V,5))
-    df=np.subtract(vm,ecl)
-    cmap(ecl,hts,totalh)
-    cmap(vm,hts,totalh,r=min(vm)*1000-1,h=max(vm)*1000)
-    cmap(df,hts,totalh,r=min(df)*1000-1,h=max(df)*1000)
+    heatmap(compl,comp,compr,sc,totalh,all=1)
 
     return sim, gui
 
@@ -503,6 +507,20 @@ def single():
     sim.run(continuefor=25, dt=dt, plot_update_interval=50, data_collect_interval=0.025, block_after=False)
     return sim, gui
 
+def heatmap(compl,comp,compr,sc,totalh,all=0):
+    hts=[int(compl.height()*sc),int(comp.height()*sc)]
+    ecl=[round(compl.ecl,5),round(comp.ecl,5)]
+    vm=[round(compl.V,5),round(comp.V,5)]
+    for i in compr:
+        hts.append(int(i.height()*sc))
+        ecl.append(round(i.ecl,5))
+        vm.append(round(i.V,5))
+    df=np.subtract(vm,ecl)
+    cmap(df,hts,totalh,r=min(df)*1000-1,h=max(df)*1000,color='PuRd')
+    if all != 0:
+        cmap(ecl,hts,totalh)
+        cmap(vm,hts,totalh,r=min(vm)*1000-1,h=max(vm)*1000,color='Greys')
+    return
 
 if __name__ == "__main__":
     argv = sys.argv[1:]  # (first arg is 'python')
@@ -529,7 +547,7 @@ if __name__ == "__main__":
             dispose_after = True
     sim.dispose()
     print(args)
-    [sim, gui] = main(new_gx=1,jkccup=0e-12,anion_flux=False,default_xz=-1,nrcomps=2,dz=0)
+    [sim, gui] = main(new_gx=1,jkccup=0e-12,anion_flux=False,default_xz=-1,nrcomps=2,dz=0,textra=100,grow=1)
     #[sim, gui] = main_old()
 
     if dispose_after:
