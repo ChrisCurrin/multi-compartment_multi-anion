@@ -59,7 +59,7 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
 
     # create copies on either side and connect with Diffusion (left first, just one compartment)
     compl=comp.copy("dendrite left")
-    diffusion_object.append(Diffusion(comp, compl, ions={'cli': cli_D, 'ki': ki_D, 'nai': nai_D}))
+    diffusion_object.append(Diffusion(compl, comp, ions={'cli': cli_D, 'ki': ki_D, 'nai': nai_D}))
 
     # right compartments
     compr=[]

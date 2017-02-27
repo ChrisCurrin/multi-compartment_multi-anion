@@ -19,7 +19,7 @@ def cmap(matrix=[1,2,3,4,5],heights=[1,2,3,4,5],totalhts=0,r=-88,h=-78,color='Bl
         a.append(blank_row)
     if change >0:
         for i in range(change):
-            a.append([r]*5)
+            a.append(blank_row)
     plt.figure()
     plt.imshow(a, cmap=color, interpolation='nearest', vmin=r, vmax=h)
     plt.colorbar()
