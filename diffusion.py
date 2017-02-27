@@ -40,11 +40,11 @@ class Diffusion(TimeMixin):
             drift_a = self.ohms_law(self.comp_a, ion, D)
             # negative to account for dV calculated from comp_a to comp_b only (and not comp_b to comp_a)
             drift_b = -1 * self.ohms_law(self.comp_b, ion, D)
-            d_drift = (drift_a + drift_b)
+            d_drift = (drift_a - drift_b)
             j_net = (F + d_drift) * (_time.dt)
-            simulator.Simulator.get_instance().to_update(self.comp_a, ion, j_net*self.comp_a.Ar, deferred_update.UpdateType.CHANGE)
+            simulator.Simulator.get_instance().to_update(self.comp_a, ion, j_net/self.comp_a.Ar, deferred_update.UpdateType.CHANGE)
             # -j_net for comp_b as it is equal but opposite of j_net w.r.t. comp_a
-            simulator.Simulator.get_instance().to_update(self.comp_b, ion, -j_net*self.comp_b.Ar, deferred_update.UpdateType.CHANGE)
+            simulator.Simulator.get_instance().to_update(self.comp_b, ion, -j_net/self.comp_b.Ar, deferred_update.UpdateType.CHANGE)
             self.ionjnet[ion] = j_net
 
     def ficks_law(self, ion: str, D: float):
@@ -88,7 +88,7 @@ class Diffusion(TimeMixin):
             mu = self.D_to_mu(D, ion)
         dV = self.comp_a.V - self.comp_b.V
         # dx is calculated in init
-        # self.dx = self.comp_a.L / 2 + self.comp_b.L / 2
+        self.dx = self.comp_a.L / 2 + self.comp_b.L / 2
         return -mu * valence(ion) * comp[ion] * (dV / self.dx)
 
     @staticmethod

@@ -50,11 +50,11 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
     sim.run(stop=50, dt=0.001, plot_update_interval=500, data_collect_interval=5, block_after=False)
 
     # set diffusion value
-    cli_D *= 1e-5 ** 2 # um2 to dm2 (D in dm2/ms)
+    cli_D *= 1e-2 # um2 to dm2 (D in dm2/ms)
     ki_D = 1.96 # um2/ms
-    ki_D *= 1e-5 ** 2 # um2 to dm2 (D in dm2/ms)
+    ki_D *= 1e-2 # um2 to dm2 (D in dm2/ms)
     nai_D = 1.33
-    nai_D *= 1e-5 ** 2
+    nai_D *= 1e-2
     diffusion_object=[]
 
     # create copies on either side and connect with Diffusion (left first, just one compartment)
@@ -107,7 +107,7 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
         .add_voltage(compr[0], line_style='k', y_units_scale=1000, y_plot_units='mV')
 
     # run simulation with diffusion
-    sim.run(continuefor=20, dt=dt, plot_update_interval=50, data_collect_interval=0.025)
+    sim.run(continuefor=20, dt=dt, plot_update_interval=2, data_collect_interval=0.025)
     print_concentrations([comp, compl, compr[-1]],
                          title="Ion concentrations given diffusion between compartments")
 
