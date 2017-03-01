@@ -18,7 +18,7 @@ class TestDiffusion(TestCase):
         self.comp2.cli += 2e-5
         self.ion = "cli"
         D = 1  # um2/ms # == 10-5 * cm2/s
-        self.D = D * 1e-5 ** 2  # um2 to dm2 (D in dm2/ms)
+        self.D = D * 1e-5 ** 2  # um2 to dm2 (D in dm2/s)
         self.ions = {"cli": D}
         self.gui = False
 
