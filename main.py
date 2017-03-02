@@ -37,7 +37,8 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
     length = default_length_short
 
     if grow==1:
-        length=5e-5
+        length=0.5e-5
+        dt=0.001
 
     comp = Compartment("reference", z=-0.85
                        , cli=0.00433925284075134,
@@ -45,6 +46,15 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
                        nai=0.0255226350779378,
                        length=length/(3.0+nrcomps),
                        radius=default_radius_short)
+
+    # copies left
+    compl=comp.copy("dendrite left")
+
+    # copies right
+    compr=[]
+    compr.append(comp.copy("dendrite right "+str(1)))
+    for i in range(nrcomps):
+        compr.append(comp.copy("dendrite right "+str(i+2)))
 
     # find steady-state values of ions
     sim.run(stop=50, dt=0.001, plot_update_interval=500, data_collect_interval=5, block_after=False)
@@ -57,16 +67,10 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
     nai_D *= 1e-10
     diffusion_object=[]
 
-    # create copies on either side and connect with Diffusion (left first, just one compartment)
-    compl=comp.copy("dendrite left")
+    # connect with Diffusion
     diffusion_object.append(Diffusion(compl, comp, ions={'cli': cli_D, 'ki': ki_D, 'nai': nai_D}))
-
-    # right compartments
-    compr=[]
-    compr.append(comp.copy("dendrite right "+str(1)))
     diffusion_object.append(Diffusion(comp, compr[-1], ions={'cli': cli_D, 'ki': ki_D, 'nai': nai_D}))
     for i in range(nrcomps):
-        compr.append(comp.copy("dendrite right "+str(i+2)))
         diffusion_object.append(Diffusion(compr[-2], compr[-1], ions={'cli': cli_D, 'ki': ki_D, 'nai': nai_D}))
 
     # heatmap incorporating compartment heights
@@ -547,7 +551,7 @@ if __name__ == "__main__":
             dispose_after = True
     sim.dispose()
     print(args)
-    [sim, gui] = main(new_gx=1,jkccup=0e-12,anion_flux=True,default_xz=-1,nrcomps=0,dz=0,textra=180,grow=0)
+    [sim, gui] = main(new_gx=1,jkccup=0e-12,anion_flux=False,default_xz=-1,nrcomps=2,dz=0,textra=0.001,grow=1)
 
     #[sim, gui] = main_old()
 
