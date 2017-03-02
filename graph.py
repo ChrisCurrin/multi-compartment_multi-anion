@@ -80,6 +80,7 @@ class Graph(object):
                 line, = self.ax.plot([], [], label=label)
             else:
                 line, = self.ax.plot([], [], line_style, label=label)
+            plt.pause(0.000001)
             # store
             self.follow_list.append(((x_object, x_var, []), (y_object, y_var, [], y_units_scale), line))
             # auto-legend
@@ -153,7 +154,7 @@ class Graph(object):
             self.fig.canvas.blit(self.ax.bbox)
         self.ax.relim()
         self.ax.autoscale_view()
-        # plt.pause(0.001)
+        plt.pause(0.001)
 
     def handle_close(self, evt):
         """

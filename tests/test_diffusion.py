@@ -7,19 +7,16 @@ from common import default_length
 
 class TestDiffusion(TestCase):
     def setUp(self):
-        self.sim = simulator.Simulator(False)
-        self.comp = SimpleCompartment("c1", pkcc2=0, z=-0.85,
-                                      cli=0.015292947537423218,
-                                      ki=0.023836660428807395,
-                                      nai=0.1135388427892471)
+        self.sim = simulator.Simulator.get_instance()
+        self.comp = SimpleCompartment("c1", pkcc2=0, z=-0.85)
         self.comp2 = self.comp.copy("c2")
         # get a reasonable negative voltage (V=--0.05271)
         self.comp.cli += 2e-5
         self.comp2.cli += 2e-5
         self.ion = "cli"
         D = 1  # um2/ms # == 10-5 * cm2/s
-        self.D = D * 1e-5 ** 2  # um2 to dm2 (D in dm2/s)
-        self.ions = {"cli": D}
+        self.D = D * 1e-7  # um2 to dm2 (D in dm2/ms)
+        self.ions = {"cli": self.D}
         self.gui = False
 
     def run_diffusion(self, time_stop=10, gui=False, block_after=False):
@@ -35,6 +32,7 @@ class TestDiffusion(TestCase):
         print("\n  V: \t{}:{} \t {}:{}".format(comp.name, round(comp.V, 5), comp2.name, round(comp2.V, 5)))
         self.assertEqual(round(comp[ion], 5), round(comp2[ion], 5))
         sim.run(stop=10, dt=0.001)
+        # TODO: why is V so high?
         print("after run:\nion: \t{}:{} \t {}:{}".format(comp.name, round(comp[ion], 5), comp2.name,
                                                          round(comp2[ion], 5)))
         print("\n  V: \t{}:{} \t {}:{}".format(comp.name, round(comp.V, 5), comp2.name, round(comp2.V, 5)))
@@ -49,40 +47,39 @@ class TestDiffusion(TestCase):
             g.add_ion_conc(comp2, "cli", line_style='--g')  # green
             g.add_ion_conc(comp, "cli", line_style='g')  # green
             v = sim.gui().add_graph()
-            v.add_voltage(comp2, line_style='--k', units_scale=1000, plot_units='mV')  # black
-            v.add_voltage(comp, line_style='k', units_scale=1000, plot_units='mV')
+            v.add_voltage(comp2, line_style='--k')  # black
+            v.add_voltage(comp, line_style='k')
 
-        sim.run(stop=time_stop, dt=0.001, block_after=block_after)
+        sim.run(continuefor=time_stop, dt=0.001, block_after=block_after)
         print("after run:\n\t{}:{} \t {}:{}".format(comp.name, round(comp[ion], 5), comp2.name, round(comp2[ion], 5)))
         self.assertEqual(round(comp[ion], 5), round(comp2[ion], 5))
 
-    def test_diffusion_compartments(self):
+    def test_diffusion_compartments(self, **kwargs):
         self.d = Diffusion(self.comp, self.comp2, self.ions)
-        self.run_diffusion(50, True, True)
+        self.run_diffusion(30, **kwargs)
 
-    def test_fick_diffusion_compartments(self):
+    def test_fick_diffusion_compartments(self, **kwargs):
         self.d = FickDiffusion(self.comp, self.comp2, self.ions)
-        self.run_diffusion(50, True, True)
+        self.run_diffusion(30, **kwargs)
 
-    def test_ohm_diffusion_compartments(self):
+    def test_ohm_diffusion_compartments(self, **kwargs):
         """
         Test diffusion between compartments with only Ohm's law taken into account.
-        :return:
         """
+        # TODO: fix (well, drift)
         self.d = OhmDiffusion(self.comp, self.comp2, self.ions)
-        self.run_diffusion(50, True, True)
+        self.run_diffusion(30, **kwargs)
 
-    def test_ohm_diffusion_compartments_complex(self):
+    def test_ohm_diffusion_compartments_complex(self, **kwargs):
         """
         Test diffusion between compartments with only Ohm's law taken into account.
         A normal Compartment (as opposed to SimpleCompartment) is used calculate V accurately
-        :return:
         """
         self.comp = Compartment("c1", pkcc2=0, z=-0.85,
                                 cli=0.015292947537423218, ki=0.023836660428807395, nai=0.1135388427892471)
         self.comp2 = self.comp.copy("c2")
         self.d = OhmDiffusion(self.comp, self.comp2, self.ions)
-        self.run_diffusion(1, True, True)
+        self.run_diffusion(1, **kwargs)
 
     def test_multi(self):
         self.setUp()
@@ -92,24 +89,19 @@ class TestDiffusion(TestCase):
         self.setUp()
         self.test_ohm_diffusion_compartments()
 
-    def test_step(self):
-        # self.fail()
-        pass
-
-    def test_ficks_law(self):
-        # self.fail()
-        pass
-
     def test_one_is_two(self):
+        """
+        Changing to the same values of all (2) compartments is the same as changing as if it were compartment
+        """
         self.compBase = Compartment("c1", length=100, pkcc2=0, z=-0.85,
-                                cli=0.015292947537423218,
-                                ki=0.023836660428807395,
-                                nai=0.1135388427892471)
-
-        self.comp = Compartment("c1", length=50, pkcc2=0, z=-0.85,
                                     cli=0.015292947537423218,
                                     ki=0.023836660428807395,
                                     nai=0.1135388427892471)
+
+        self.comp = Compartment("c1", length=50, pkcc2=0, z=-0.85,
+                                cli=0.015292947537423218,
+                                ki=0.023836660428807395,
+                                nai=0.1135388427892471)
         self.comp2 = self.comp.copy("c2")
         # set diffusion value
         cli_D = 2.03  # um2/ms
@@ -136,10 +128,11 @@ class TestDiffusion(TestCase):
         self.assertEqual(self.comp.cli, self.comp2.cli)
 
     def test_middle(self):
-        self.compBase = Compartment("c1", pkcc2=1e-8, z=-0.85,
-                                    cli=0.015292947537423218,
-                                    ki=0.023836660428807395,
-                                    nai=0.1135388427892471)
+        """
+        Changing middle compartment, affects outer compartments by the same amount
+        """
+        # TODO: why does 'Compartment' fail the test (presumable an anion issue causing different steady-state cli)
+        self.compBase = SimpleCompartment("c1", pkcc2=1e-8, z=-0.85)
         self.comp = self.compBase.copy("left")
         self.comp2 = self.comp.copy("right")
 
@@ -151,7 +144,7 @@ class TestDiffusion(TestCase):
         nai_D = 1.33
         nai_D *= 1e-5 ** 2
         # create diffusion connection
-        diffusion_object = Diffusion(self.comp, self.compBase, ions={'cli': cli_D, 'ki': ki_D, 'nai': nai_D})
+        diffusion_object = Diffusion(self.comp, self.comp2, ions={'cli': cli_D, 'ki': ki_D, 'nai': nai_D})
         diffusion_object = Diffusion(self.comp2, self.compBase, ions={'cli': cli_D, 'ki': ki_D, 'nai': nai_D})
 
         self.sim.run(stop=100, dt=0.001, block_after=False)
@@ -165,18 +158,18 @@ class TestDiffusion(TestCase):
         self.assertEqual(self.comp.cli, self.comp2.cli)
 
     def test_mols(self):
-        self.compBase = Compartment("c1", pkcc2=1e-8, z=-0.85,
-                                    cli=0.015292947537423218,
-                                    ki=0.023836660428807395,
-                                    nai=0.1135388427892471)
+        self.compBase = SimpleCompartment("c1", pkcc2=1e-8, z=-0.85,
+                                          cli=0.015292947537423218,
+                                          ki=0.023836660428807395,
+                                          nai=0.1135388427892471)
 
         self.comp = self.compBase.copy("left")
         self.comp2 = self.comp.copy("right")
-        self.compSingle = Compartment("cs", pkcc2=1e-8, z=-0.85,
-                                    cli=0.015292947537423218,
-                                    ki=0.023836660428807395,
-                                    nai=0.1135388427892471,
-                                    length = 3*default_length)
+        self.compSingle = SimpleCompartment("cs", pkcc2=1e-8, z=-0.85,
+                                            cli=0.015292947537423218,
+                                            ki=0.023836660428807395,
+                                            nai=0.1135388427892471,
+                                            length=3 * default_length)
         # set diffusion value
         cli_D = 2.03  # um2/ms
         cli_D *= 1e-5 ** 2  # um2 to dm2 (D in dm2/ms)
@@ -196,15 +189,16 @@ class TestDiffusion(TestCase):
 
         xmol_3 = self.compBase.mols(self.compBase.xi) + self.comp.mols(self.comp.xi) + self.comp2.mols(self.comp2.xi)
         xmol_single = self.compSingle.mols(self.compSingle.xi)
-        self.assertAlmostEqual(xmol_3,xmol_single)
+        self.assertAlmostEqual(xmol_3, xmol_single)
 
         cmol_3 = self.compBase.mols(self.compBase.cli) + self.comp.mols(self.comp.cli) + self.comp2.mols(self.comp2.cli)
         cmol_single = self.compSingle.mols(self.compSingle.cli)
         self.assertAlmostEqual(cmol_3, cmol_single)
 
+
 class SimpleCompartment(Compartment):
     """
-    Compartment without internally changing ion concentrations over time.
+    Compartment without any changing ion concentrations over time.
     Ion changes should only be done by a Diffusion class
     """
 

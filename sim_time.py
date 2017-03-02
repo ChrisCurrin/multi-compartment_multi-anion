@@ -22,6 +22,12 @@ class Time(TimeMixin):
     __monostate = None
 
     def __init__(self, t=0, dt=1e-3, stop=5):
+        """
+
+        :param t: ms
+        :param dt: ms
+        :param stop:
+        """
         if not Time.__monostate:
             Time.__monostate = self.__dict__
             # Your definitions here

@@ -90,7 +90,7 @@ class Simulator(object):
         # create variables for faster processing during loop
         data_collect_interval_dt = (data_collect_interval / dt)
         plot_update_interval_dt = (plot_update_interval / dt)
-        print("run from {0} until {1} with time step of {2} ".format(cls.__time.time, stop, dt))
+        print("run from {0}ms until {1}ms with time step of {2} seconds ".format(cls.__time.time, stop, dt))
         # get state ready for run
         cls.run_done = False
         if continuefor is None:

@@ -14,7 +14,7 @@ class Diffusion(TimeMixin):
         :param comp_b:
         :param ions: dictionary must be of the form {ion: D}, where
                 ion is the molecule of interest (str) (e.g. 'cli')
-                D is the diffusion coefficient for that ion (float) (dm2/ms)
+                D is the diffusion coefficient for that ion (float) (dm2/s)
         """
         self.name = comp_a.name + '<-' + comp_b.name
         self.comp_a = comp_a
@@ -30,42 +30,44 @@ class Diffusion(TimeMixin):
     def step(self, _time: Time = None):
         """
         Diffusion equation between compartments for each time step
+        Fick's law calculates the diffusion due to concentration differences between compartments a and b
+        Ohm's law calculates the diffusion due to ionic differences between compartments a and a
+        Returned diffusion values are relative to comp_a
         """
         for ion, D in self.ions.items():
-            # if ion == 'cli':
-            # print (ion, D)
-            # F in M * dm / s
+            # F in M * dm / ms
             F = self.ficks_law(ion, D)
-            # drift in M * dm / s
+            # drift in M * dm / ms
             drift_a = self.ohms_law(self.comp_a, ion, D)
             # negative to account for dV calculated from comp_a to comp_b only (and not comp_b to comp_a)
             drift_b = -1 * self.ohms_law(self.comp_b, ion, D)
             d_drift = (drift_a - drift_b)
-            #d_drift=0
-            j_net = (2*F + d_drift) * (_time.dt/2)
-            simulator.Simulator.get_instance().to_update(self.comp_a, ion, j_net/self.comp_a.L, deferred_update.UpdateType.CHANGE)
+            j_net = (2*F + d_drift) * _time.dt
+            simulator.Simulator.get_instance().to_update(self.comp_a, ion, j_net / self.comp_a.L,
+                                                         deferred_update.UpdateType.CHANGE)
             # -j_net for comp_b as it is equal but opposite of j_net w.r.t. comp_a
-            simulator.Simulator.get_instance().to_update(self.comp_b, ion, -j_net/self.comp_b.L, deferred_update.UpdateType.CHANGE)
-            self.ionjnet[ion] = j_net # jnet has units M*dm
+            simulator.Simulator.get_instance().to_update(self.comp_b, ion, -j_net / self.comp_b.L,
+                                                         deferred_update.UpdateType.CHANGE)
+            self.ionjnet[ion] = j_net  # jnet has units M*dm
 
     def ficks_law(self, ion: str, D: float):
         """
         Fick's law for diffusion:
         F = -D * dc/dx
-        F is the diffusion flux - the rate of transfer per unit of a section (M/ms * dm)
+        F is the diffusion flux - the rate of transfer per unit of a section (M/s * dm)
         c the concentration of diffusing substance (M)
         x the space coordinate measured normal to the section (dm)
-        D the diffusion coefficient (dm2/ms)
+        D the diffusion coefficient (dm2/s)
         :param ion: name of substance of interest
-        :param D: diffusion coefficient (dm2/ms) -> called from context where D/dt
-        :return:  F
+        :param D: diffusion coefficient (dm2/s)
+        :return:  F M*dm/s
         """
         # difference in ion concentrations
         dc = self.comp_a[ion] - self.comp_b[ion]
         # difference in distance between compartment midpoints
         self.dx = self.comp_a.L / 2 + self.comp_b.L / 2
 
-        return -D * dc / self.dx # M*dm*s-1
+        return -D * dc / self.dx
 
     def ohms_law(self, comp: Compartment, ion: str, D: float = None, mu: float = None):
         """
@@ -90,13 +92,13 @@ class Diffusion(TimeMixin):
         dV = self.comp_a.V - self.comp_b.V
         # dx is calculated in init but must be recalculated as L changes with volume changes
         self.dx = self.comp_a.L / 2 + self.comp_b.L / 2
-        return - D * valence(ion) * comp[ion] * dV / self.dx / RTF #-mu * valence(ion) * comp[ion] * (dV / self.dx)
+        return - D * valence(ion) * comp[ion] * dV / self.dx / RTF  # -mu * valence(ion) * comp[ion] * (dV / self.dx)
 
     @staticmethod
     def D_to_mu(D: float, ion: str):
         """
 
-        :param D: the diffusion coefficient (dm2/ms)
+        :param D: the diffusion coefficient (dm2/s)
         :param ion:
         :return:
         """
