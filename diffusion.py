@@ -38,11 +38,8 @@ class Diffusion(TimeMixin):
             # F in M * dm / ms
             F = self.ficks_law(ion, D)
             # drift in M * dm / ms
-            drift_a = self.ohms_law(self.comp_a, ion, D)
-            # negative to account for dV calculated from comp_a to comp_b only (and not comp_b to comp_a)
-            drift_b = -1 * self.ohms_law(self.comp_b, ion, D)
-            d_drift = (drift_a - drift_b)
-            j_net = (2*F + d_drift) * _time.dt
+            d_drift = self.ohms_law(ion, D)
+            j_net = (2 * F + d_drift) * _time.dt
             simulator.Simulator.get_instance().to_update(self.comp_a, ion, j_net / self.comp_a.L,
                                                          deferred_update.UpdateType.CHANGE)
             # -j_net for comp_b as it is equal but opposite of j_net w.r.t. comp_a
@@ -69,7 +66,7 @@ class Diffusion(TimeMixin):
 
         return -D * dc / self.dx
 
-    def ohms_law(self, comp: Compartment, ion: str, D: float = None, mu: float = None):
+    def ohms_law(self, ion: str, D: float = None, mu: float = None):
         """
         Ohm's law for drift
         drift = -mu*z*[C]*dV/dx
@@ -85,14 +82,12 @@ class Diffusion(TimeMixin):
         :param mu: mobility (dm2/(V*ms)) -> called from context where mu/dt
         :return: drift
         """
-        if mu is None:
-            if D is None:
-                raise RuntimeError("must specify at least one of D or mu in ohms_law method")
-            mu = self.D_to_mu(D, ion)
         dV = self.comp_a.V - self.comp_b.V
         # dx is calculated in init but must be recalculated as L changes with volume changes
         self.dx = self.comp_a.L / 2 + self.comp_b.L / 2
-        return - D * valence(ion) * comp[ion] * dV / self.dx / RTF  # -mu * valence(ion) * comp[ion] * (dV / self.dx)
+
+        return - (D / RTF * valence(ion) * dV / self.dx) * (self.comp_a[ion] + self.comp_b[ion])
+        # old: - D * valence(ion) * comp[ion] * dV / self.dx / RTF
 
     @staticmethod
     def D_to_mu(D: float, ion: str):

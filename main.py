@@ -62,13 +62,13 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
     sim.run(stop=50, dt=0.001, plot_update_interval=500, data_collect_interval=5, block_after=False)
 
     # set diffusion value
-    cli_D *= 1e-10  # cm2 to dm2 (D in dm2/s)
+    cli_D *= 1e-14  # cm2 to dm2 (D in dm2/s)
     cli_D *= 1e3  # convert to dm2/ms
     ki_D = 1.96
-    ki_D *= 1e-10  # cm2 to dm2 (D in dm2/s)
+    ki_D *= 1e-14  # cm2 to dm2 (D in dm2/s)
     ki_D *= 1e3  # convert to dm2/ms
     nai_D = 1.33
-    nai_D *= 1e-10
+    nai_D *= 1e-14
     nai_D *= 1e3  # convert to dm2/ms
     diffusion_object = []
 
@@ -559,7 +559,7 @@ if __name__ == "__main__":
             dispose_after = True
     sim.dispose()
     print(args)
-    [sim, gui] = main(new_gx=1, jkccup=0e-12, anion_flux=False, default_xz=-1, nrcomps=0, dz=0, textra=100, grow=0)
+    [sim, gui] = main(new_gx=1, jkccup=0e-12, anion_flux=False, default_xz=-1, nrcomps=0, dz=0, textra=20, grow=0)
 
     # [sim, gui] = main_old()
 
