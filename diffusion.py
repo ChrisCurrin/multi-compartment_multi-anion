@@ -39,7 +39,7 @@ class Diffusion(TimeMixin):
             F = self.ficks_law(ion, D)
             # drift in M * dm / ms
             d_drift = self.ohms_law(ion, D)
-            j_net = (2 * F + d_drift) * _time.dt
+            j_net = (F + d_drift/2) * _time.dt
             simulator.Simulator.get_instance().to_update(self.comp_a, ion, j_net / self.comp_a.L,
                                                          deferred_update.UpdateType.CHANGE)
             # -j_net for comp_b as it is equal but opposite of j_net w.r.t. comp_a
@@ -51,13 +51,13 @@ class Diffusion(TimeMixin):
         """
         Fick's law for diffusion:
         F = -D * dc/dx
-        F is the diffusion flux - the rate of transfer per unit of a section (M/s * dm)
+        F is the diffusion flux - the rate of transfer per unit of a section (M/ms * dm)
         c the concentration of diffusing substance (M)
         x the space coordinate measured normal to the section (dm)
-        D the diffusion coefficient (dm2/s)
+        D the diffusion coefficient (dm2/ms)
         :param ion: name of substance of interest
-        :param D: diffusion coefficient (dm2/s)
-        :return:  F M*dm/s
+        :param D: diffusion coefficient (dm2/ms)
+        :return:  F M*dm/ms
         """
         # difference in ion concentrations
         dc = self.comp_a[ion] - self.comp_b[ion]
@@ -87,7 +87,6 @@ class Diffusion(TimeMixin):
         self.dx = self.comp_a.L / 2 + self.comp_b.L / 2
 
         return - (D / RTF * valence(ion) * dV / self.dx) * (self.comp_a[ion] + self.comp_b[ion])
-        # old: - D * valence(ion) * comp[ion] * dV / self.dx / RTF
 
     @staticmethod
     def D_to_mu(D: float, ion: str):
