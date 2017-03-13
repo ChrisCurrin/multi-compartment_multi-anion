@@ -8,11 +8,12 @@ from common import default_length
 class TestDiffusion(TestCase):
     def setUp(self):
         self.sim = simulator.Simulator.get_instance()
-        self.comp = SimpleCompartment("c1", pkcc2=0, z=-0.85)
+        self.comp = SimpleCompartment("c1", pkcc2=0, z=-0.85,
+                                      cli=0.005175478364339566, ki=0.111358641523315191, nai=0.025519187764070129)
         self.comp2 = self.comp.copy("c2")
-        # get a reasonable negative voltage (V=--0.05271)
-        self.comp.cli += 2e-5
-        self.comp2.cli += 2e-5
+        # get a reasonable negative voltage (V=--0.06892)
+        self.comp.cli += 2e-7
+        self.comp2.cli += 2e-7
         self.ion = "cli"
         D = 1  # um2/ms # == 10-5 * cm2/s
         self.D = D * 1e-7  # um2 to dm2 (D in dm2/ms)
@@ -32,13 +33,13 @@ class TestDiffusion(TestCase):
         print("\n  V: \t{}:{} \t {}:{}".format(comp.name, round(comp.V, 5), comp2.name, round(comp2.V, 5)))
         self.assertEqual(round(comp[ion], 5), round(comp2[ion], 5))
         sim.run(stop=10, dt=0.001)
-        # TODO: why is V so high?
+        # value of V fixed
         print("after run:\nion: \t{}:{} \t {}:{}".format(comp.name, round(comp[ion], 5), comp2.name,
                                                          round(comp2[ion], 5)))
         print("\n  V: \t{}:{} \t {}:{}".format(comp.name, round(comp.V, 5), comp2.name, round(comp2.V, 5)))
         self.assertEqual(round(comp[ion], 5), round(comp2[ion], 5))
         comp.cli += 1e-3
-        # comp.ki += 1e-3
+        comp.ki += 1e-3
         print("value changed\nbefore run:\n\t{}:{} \t {}:{}".format(comp.name, round(comp[ion], 5), comp2.name,
                                                                     round(comp2[ion], 5)))
         self.assertNotEqual(round(comp[ion], 5), round(comp2[ion], 5))
@@ -56,11 +57,11 @@ class TestDiffusion(TestCase):
 
     def test_diffusion_compartments(self, **kwargs):
         self.d = Diffusion(self.comp, self.comp2, self.ions)
-        self.run_diffusion(30, **kwargs)
+        self.run_diffusion(200,True, **kwargs)
 
     def test_fick_diffusion_compartments(self, **kwargs):
         self.d = FickDiffusion(self.comp, self.comp2, self.ions)
-        self.run_diffusion(30, **kwargs)
+        self.run_diffusion(200, True, **kwargs)
 
     def test_ohm_diffusion_compartments(self, **kwargs):
         """
@@ -68,7 +69,7 @@ class TestDiffusion(TestCase):
         """
         # TODO: fix (well, drift)
         self.d = OhmDiffusion(self.comp, self.comp2, self.ions)
-        self.run_diffusion(30, **kwargs)
+        self.run_diffusion(200, True, **kwargs)
 
     def test_ohm_diffusion_compartments_complex(self, **kwargs):
         """
@@ -76,10 +77,10 @@ class TestDiffusion(TestCase):
         A normal Compartment (as opposed to SimpleCompartment) is used calculate V accurately
         """
         self.comp = Compartment("c1", pkcc2=0, z=-0.85,
-                                cli=0.015292947537423218, ki=0.023836660428807395, nai=0.1135388427892471)
+                                cli=0.005175478364339566, ki=0.111358641523315191, nai=0.025519187764070129) # corrected values
         self.comp2 = self.comp.copy("c2")
         self.d = OhmDiffusion(self.comp, self.comp2, self.ions)
-        self.run_diffusion(1, **kwargs)
+        self.run_diffusion(100, **kwargs)
 
     def test_multi(self):
         self.setUp()
