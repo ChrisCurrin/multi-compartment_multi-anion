@@ -14,10 +14,10 @@ class TestDiffusion(TestCase):
         # get a reasonable negative voltage (V=--0.06892)
         self.comp.cli += 2e-7
         self.comp2.cli += 2e-7
-        self.ion = "cli"
+        self.ion = "ki"
         D = 1  # um2/ms # == 10-5 * cm2/s
         self.D = D * 1e-7  # um2 to dm2 (D in dm2/ms)
-        self.ions = {"cli": self.D}
+        self.ions = {"ki": self.D}
         self.gui = False
 
     def run_diffusion(self, time_stop=10, gui=False, block_after=False):
@@ -38,15 +38,15 @@ class TestDiffusion(TestCase):
                                                          round(comp2[ion], 5)))
         print("\n  V: \t{}:{} \t {}:{}".format(comp.name, round(comp.V, 5), comp2.name, round(comp2.V, 5)))
         self.assertEqual(round(comp[ion], 5), round(comp2[ion], 5))
-        comp.cli += 1e-3
         comp.ki += 1e-3
+        #comp.nai -= 1e-3
         print("value changed\nbefore run:\n\t{}:{} \t {}:{}".format(comp.name, round(comp[ion], 5), comp2.name,
                                                                     round(comp2[ion], 5)))
         self.assertNotEqual(round(comp[ion], 5), round(comp2[ion], 5))
         if gui or self.gui:
             g = sim.gui().add_graph()
-            g.add_ion_conc(comp2, "cli", line_style='--g')  # green
-            g.add_ion_conc(comp, "cli", line_style='g')  # green
+            g.add_ion_conc(comp2, self.ion, line_style='--g')  # green
+            g.add_ion_conc(comp, self.ion, line_style='g')  # green
             v = sim.gui().add_graph()
             v.add_voltage(comp2, line_style='--k')  # black
             v.add_voltage(comp, line_style='k')
@@ -57,7 +57,7 @@ class TestDiffusion(TestCase):
 
     def test_diffusion_compartments(self, **kwargs):
         self.d = Diffusion(self.comp, self.comp2, self.ions)
-        self.run_diffusion(200,True, **kwargs)
+        self.run_diffusion(300,True, **kwargs)
 
     def test_fick_diffusion_compartments(self, **kwargs):
         self.d = FickDiffusion(self.comp, self.comp2, self.ions)
@@ -69,7 +69,7 @@ class TestDiffusion(TestCase):
         """
         # TODO: fix (well, drift)
         self.d = OhmDiffusion(self.comp, self.comp2, self.ions)
-        self.run_diffusion(200, True, **kwargs)
+        self.run_diffusion(300, True, **kwargs)
 
     def test_ohm_diffusion_compartments_complex(self, **kwargs):
         """

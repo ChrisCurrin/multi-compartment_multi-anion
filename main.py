@@ -39,7 +39,7 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
     length = default_length_short
 
     if grow == 1:
-        length = 0.5e-5
+        length = 5e-5
         dt = 0.001
 
     comp = Compartment("reference", z=-0.85
@@ -167,7 +167,7 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
         for a in compr:
             heatmap(compl, comp, compr, sc, totalh)
             a.gx = 1
-            sim.run(continuefor=textra, dt=dt, plot_update_interval=50, data_collect_interval=0.025)
+            sim.run(continuefor=textra, dt=0.0001, plot_update_interval=50, data_collect_interval=0.025)
             a.gx = 0
 
     sim.run(continuefor=100, dt=dt, plot_update_interval=50, data_collect_interval=0.025)

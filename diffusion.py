@@ -86,7 +86,7 @@ class Diffusion(TimeMixin):
         # dx is calculated in init but must be recalculated as L changes with volume changes
         self.dx = self.comp_a.L / 2 + self.comp_b.L / 2
 
-        return - (D / RTF * valence(ion) * dV / self.dx) * (self.comp_a[ion] + self.comp_b[ion])
+        return - (D / RTF * valence(ion) * dV / self.dx) * (self.comp_a[ion] + self.comp_b[ion])/10000.0
 
     @staticmethod
     def D_to_mu(D: float, ion: str):
