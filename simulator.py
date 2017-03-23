@@ -63,7 +63,7 @@ class Simulator(object):
 
     @classmethod
     def run(cls, continuefor: float = None, stop: float = None, dt: float = None, plot_update_interval: float = 100,
-            data_collect_interval: float = None, block_after=False):
+            data_collect_interval: float = None, block_after=False, print_time=True):
         """
         Run a time-based simulation.
         Each time-registered object is moved forward by dt
@@ -75,6 +75,7 @@ class Simulator(object):
         :param data_collect_interval: frequency to collect data for plotting (in ms)
         :param block_after: does gui cause a pause/block after run is finished. If False, graphs close immediately upon
         completion (default: True)
+        :param print_time: whether to log to the console the simulation time moved forward and length of time taken
         """
         # assign default values if not specified
         if stop is None:
@@ -90,7 +91,8 @@ class Simulator(object):
         # create variables for faster processing during loop
         data_collect_interval_dt = (data_collect_interval / dt)
         plot_update_interval_dt = (plot_update_interval / dt)
-        print("run from {0}ms until {1}ms with time step of {2} seconds ".format(cls.__time.time, stop, dt))
+        if print_time:
+            print("running from {0}ms until {1}ms with time step of {2} seconds ".format(cls.__time.time, stop, dt))
         # get state ready for run
         cls.run_done = False
         if continuefor is None:
@@ -111,9 +113,10 @@ class Simulator(object):
             # apply updates to objects that required deferred updating of their variables
             cls.__apply_updates()
         cls.run_done = True
-        cls.plot_graphs()
-        print("time taken: {}".format(time.clock()))
+        if print_time:
+            print("time taken: {}".format(time.clock()))
         if block_after and cls.__gui is not None:
+            cls.plot_graphs()
             cls.__gui.block()
 
     @classmethod

@@ -14,10 +14,10 @@ class TestDiffusion(TestCase):
         # get a reasonable negative voltage (V=--0.06892)
         self.comp.cli += 2e-7
         self.comp2.cli += 2e-7
-        self.ion = "ki"
+        self.ion = "cli"
         D = 1  # um2/ms # == 10-5 * cm2/s
         self.D = D * 1e-7  # um2 to dm2 (D in dm2/ms)
-        self.ions = {"ki": self.D}
+        self.ions = {"cli": self.D}
         self.gui = False
 
     def run_diffusion(self, time_stop=10, gui=False, block_after=False):
@@ -38,11 +38,11 @@ class TestDiffusion(TestCase):
                                                          round(comp2[ion], 5)))
         print("\n  V: \t{}:{} \t {}:{}".format(comp.name, round(comp.V, 5), comp2.name, round(comp2.V, 5)))
         self.assertEqual(round(comp[ion], 5), round(comp2[ion], 5))
-        comp.ki += 1e-3
-        #comp.nai -= 1e-3
+        increase_amount = 1e-2
+        # comp.cli += increase_amount
         print("value changed\nbefore run:\n\t{}:{} \t {}:{}".format(comp.name, round(comp[ion], 5), comp2.name,
                                                                     round(comp2[ion], 5)))
-        self.assertNotEqual(round(comp[ion], 5), round(comp2[ion], 5))
+        # self.assertNotEqual(round(comp[ion], 5), round(comp2[ion], 5))
         if gui or self.gui:
             g = sim.gui().add_graph()
             g.add_ion_conc(comp2, self.ion, line_style='--g')  # green
@@ -50,14 +50,33 @@ class TestDiffusion(TestCase):
             v = sim.gui().add_graph()
             v.add_voltage(comp2, line_style='--k')  # black
             v.add_voltage(comp, line_style='k')
+            # g.ax.set_ylim([comp.cli,comp.cli+increase_amount])
+            # v.ax.set_ylim([comp.V-0.02,comp.V+0.02])
+        self.slow_increase(1., increase_amount, comp, ["cli"])
 
-        sim.run(continuefor=time_stop, dt=0.001, block_after=block_after)
+        sim.run(continuefor=time_stop, dt=0.001, block_after=False)
+
+        sim.run(continuefor=0.001, dt=0.001, block_after=block_after, print_time=False)
         print("after run:\n\t{}:{} \t {}:{}".format(comp.name, round(comp[ion], 5), comp2.name, round(comp2[ion], 5)))
         self.assertEqual(round(comp[ion], 5), round(comp2[ion], 5))
 
+    def slow_increase(self, time: float, total_increase: float, comp: Compartment, ions: list):
+        start = self.sim.time().time
+        goal = start + time
+        dt = 0.0001
+        steps = int(round(time/dt))
+        time_step_increase = total_increase / steps
+        start_conc = comp[ions[0]]
+        for i in range(steps):
+            for ion in ions:
+                # artificially increase concentration
+                comp[ion] += time_step_increase
+            # move 1 time step
+            self.sim.run(continuefor=dt, dt=dt, plot_update_interval=10, block_after=False,print_time=False)
+
     def test_diffusion_compartments(self, **kwargs):
         self.d = Diffusion(self.comp, self.comp2, self.ions)
-        self.run_diffusion(300,True, **kwargs)
+        self.run_diffusion(300, True, **kwargs)
 
     def test_fick_diffusion_compartments(self, **kwargs):
         self.d = FickDiffusion(self.comp, self.comp2, self.ions)
@@ -69,7 +88,7 @@ class TestDiffusion(TestCase):
         """
         # TODO: fix (well, drift)
         self.d = OhmDiffusion(self.comp, self.comp2, self.ions)
-        self.run_diffusion(300, True, **kwargs)
+        self.run_diffusion(10, True, block_after=True,**kwargs)
 
     def test_ohm_diffusion_compartments_complex(self, **kwargs):
         """
@@ -77,7 +96,8 @@ class TestDiffusion(TestCase):
         A normal Compartment (as opposed to SimpleCompartment) is used calculate V accurately
         """
         self.comp = Compartment("c1", pkcc2=0, z=-0.85,
-                                cli=0.005175478364339566, ki=0.111358641523315191, nai=0.025519187764070129) # corrected values
+                                cli=0.005175478364339566, ki=0.111358641523315191,
+                                nai=0.025519187764070129)  # corrected values
         self.comp2 = self.comp.copy("c2")
         self.d = OhmDiffusion(self.comp, self.comp2, self.ions)
         self.run_diffusion(100, **kwargs)
