@@ -36,7 +36,7 @@ class Compartment(TimeMixin):
         self.w = np.pi * self.r ** 2 * self.L  # initial volume in liters
         #self.Ar = 4e6
         self.Ar=2.0/self.r # area constant (F and H method)
-        self.C = 7e-6  # capacitance (F/dm^2)
+        self.C = 2e-4  # capacitance (F/dm^2)
         # (F/C*area scaling constant)
         self.FinvCAr = F / (self.C * self.Ar)
         # na,k,cl,x: intracellular starting concentrations
@@ -144,7 +144,7 @@ class Compartment(TimeMixin):
         self.dki = dki
         self.dcli = dcli
         if self.gx != 0:
-            dxi = 1e-5*self.L*self.Ar*_time.dt
+            dxi = 1e-7*self.L*self.Ar*_time.dt
         else:
             dxi = 0
 

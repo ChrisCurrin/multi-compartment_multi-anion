@@ -23,7 +23,7 @@ class Diffusion(TimeMixin):
         self.ionjnet = ions.copy()
         for ion, D in self.ions.items():
             # store D and mu for each ion
-            self.ions[ion] = (D, self.D_to_mu(D, ion))
+            self.ions[ion] = D
         # difference in distance between compartment midpoints
         self.dx = self.comp_a.L / 2 + self.comp_b.L / 2
         # register component with simulator
@@ -36,11 +36,11 @@ class Diffusion(TimeMixin):
         Ohm's law calculates the diffusion due to ionic differences between compartments a and a
         Returned diffusion values are relative to comp_a
         """
-        for ion, (D, mu) in self.ions.items():
+        for ion, D in self.ions.items():
             # F in M * dm / ms
             F = self.ficks_law(ion, D)
             # drift in M * dm / ms
-            d_drift = self.ohms_law(ion, mu)
+            d_drift = self.ohms_law(ion, D) * 0.001
             j_net = (F + d_drift / 2) * _time.dt
             simulator.Simulator.get_instance().to_update(self.comp_a, ion, j_net / self.comp_a.L,
                                                          deferred_update.UpdateType.CHANGE)
@@ -68,51 +68,26 @@ class Diffusion(TimeMixin):
 
         return -D * dc / self.dx
 
-    def ohms_law(self, ion: str, mu: float = None):
+    def ohms_law(self, ion: str, D: float = None):
         """
         Ohm's law for drift
         drift = -mu*z*[C]*dV/dx
         drift is the drift flux (M/ms dm)
-        mu (u) is mobility (dm2/(V*ms))
+        D the diffusion coefficient (dm2/ms)
+        RTF is gas constant * temperature / Faraday's constant
         z is valence of the ion
         [C] is concentration of the ion
         V is electric potential (V)
         x the space coordinate measured normal to the section (dm)
         :param ion: name of substance of interest
-        :param mu: mobility (dm2/(V*s)) -> called from context where mu/dt
+        :param D: diffusion coefficient (dm2/ms)
         :return: drift
         """
         dV = self.comp_a.V - self.comp_b.V
         # dx is calculated in init but must be recalculated as L changes with volume changes
         self.dx = self.comp_a.L / 2 + self.comp_b.L / 2
 
-        return - (mu * 1e-5 * valence(ion) * dV / self.dx) * (self.comp_a[ion] + self.comp_b[ion])
-
-    @staticmethod
-    def D_to_mu(D: float, ion: str):
-        """
-
-        :param D: the diffusion coefficient (dm2/s)
-        :param ion:
-        :return: mu
-        """
-        return D * q * abs(valence(ion)) / (k * T)
-
-    @staticmethod
-    def mu_to_D(mu: float, ion: str):
-        """
-        D = mu * k * T / (q*z)
-        D is the diffusion coefficient (dm2/s)
-        mu is mobility
-        k is Boltzman Constant
-        T is temperature in Kelvin
-        q is charge
-        z is valence of ion
-        :param mu:
-        :param ion:
-        :return: D
-        """
-        return mu * k * T / (q * valence(ion))
+        return - (D / RTF * valence(ion) * dV / self.dx) * (self.comp_a[ion] + self.comp_b[ion])
 
     def __getitem__(self, item):
         return self.__dict__[item]

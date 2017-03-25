@@ -44,6 +44,8 @@ class Time(TimeMixin):
         """
         if dt is None:
             dt = self.dt
+        else:
+            self.dt = dt
         self.time += dt
 
     def reset(self):

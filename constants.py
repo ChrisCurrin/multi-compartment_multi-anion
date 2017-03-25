@@ -14,7 +14,7 @@ Python 3.x targeted
 # 1.98722                           cal K-1 mol-1
 
 R = 8.31446
-F = 96485.3  # Faraday's constant        C mol-1
+F = 96485.33  # Faraday's constant        C mol-1
 k = 1.38e-23  # Boltzmann constant        J K-1
 q = 1.602176620898e-19  # elementary charge         C
 Na = 6.022e23  # Avogadro's constant       mol-1
