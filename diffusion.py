@@ -40,7 +40,7 @@ class Diffusion(TimeMixin):
             # F in M * dm / ms
             F = self.ficks_law(ion, D)
             # drift in M * dm / ms
-            d_drift = self.ohms_law(ion, D) * 0.001
+            d_drift = self.ohms_law(ion, D) * 1
             j_net = (F + d_drift / 2) * _time.dt
             simulator.Simulator.get_instance().to_update(self.comp_a, ion, j_net / self.comp_a.L,
                                                          deferred_update.UpdateType.CHANGE)

@@ -157,7 +157,7 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
     # .add_ion_conc(compr[1], "w", line_style='b--') \
     # .add_ion_conc(compr[2], "w", line_style='b--')
 
-    sim.run(continuefor=textra, dt=dt*1, plot_update_interval=textra/2, data_collect_interval=0.025)
+    sim.run(continuefor=textra, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=0.025)
     print_concentrations([comp, compl, compr[-1]],
                          title="Ion concentrations given anion flux from the dendritic compartment")
 
