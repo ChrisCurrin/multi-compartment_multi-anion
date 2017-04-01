@@ -159,7 +159,7 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
 
     sim.run(continuefor=textra, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=0.025)
     print_concentrations([comp, compl, compr[-1]],
-                         title="Ion concentrations given anion flux from the dendritic compartment")
+                         title="Ion concentrations given event from the dendritic compartment")
 
     comp.gx = prev_comp_gx
     comp.jkccup = None
@@ -168,15 +168,12 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
         for a in compr:
             heatmap(compl, comp, compr, sc, totalh)
             a.gx = 1
-            sim.run(continuefor=textra, dt=0.0001, plot_update_interval=50, data_collect_interval=0.025)
+            sim.run(continuefor=textra, dt=dt*0.001, plot_update_interval=textra, data_collect_interval=0.025)
             a.gx = 0
-    sim.run(continuefor=textra*10, dt=dt*0.001, plot_update_interval=textra*5, data_collect_interval=0.025)
-    print_concentrations([comp, compl, compr[-1]],
-                         title="Ion concentrations shortly after event")
 
-    sim.run(continuefor=50, dt=dt, plot_update_interval=50, data_collect_interval=0.025)
+    sim.run(continuefor=textra*100, dt=dt*0.001, plot_update_interval=textra*20, data_collect_interval=0.025)
     print_concentrations([comp, compl, compr[-1]],
-                         title="Ion concentrations at the end")
+                         title="Ion concentrations at end")
 
     # heatmap incorporating compartment heights
     heatmap(compl, comp, compr, sc, totalh, all=1)
@@ -563,7 +560,15 @@ if __name__ == "__main__":
             dispose_after = True
     sim.dispose()
     print(args)
-    [sim, gui] = main(new_gx=1, jkccup=0e-25, anion_flux=False, default_xz=-1, nrcomps=0, dz=0, textra=0.05, grow=0)
+    [sim, gui] = main(new_gx=1, jkccup=0e-25, anion_flux=False, default_xz=-1, nrcomps=11, dz=0, textra=10, grow=0)
+
+    sim.dispose()
+    print(args)
+    [sim, gui] = main(new_gx=1, jkccup=0e-25, anion_flux=True, default_xz=-1, nrcomps=11, dz=0, textra=10, grow=0)
+
+    sim.dispose()
+    print(args)
+    [sim, gui] = main(new_gx=0, jkccup=1e-12, anion_flux=False, default_xz=-1, nrcomps=11, dz=0, textra=10, grow=0)
 
     # [sim, gui] = main_old()
 
