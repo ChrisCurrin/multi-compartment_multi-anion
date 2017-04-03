@@ -11,6 +11,7 @@ from diffusion import Diffusion
 from common import default_length_short, default_radius_short
 from colormap import cmap
 import numpy as np
+import datetime
 
 usage_help = \
     """
@@ -118,6 +119,7 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
 
     # run simulation with diffusion
     sim.run(continuefor=10, dt=dt, plot_update_interval=10, data_collect_interval=0.025)
+    datetime.datetime.now()
     print_concentrations([comp, compl, compr[-1]],
                          title="Ion concentrations given diffusion between compartments")
 
@@ -157,7 +159,8 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
     # .add_ion_conc(compr[1], "w", line_style='b--') \
     # .add_ion_conc(compr[2], "w", line_style='b--')
 
-    sim.run(continuefor=textra, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=0.025)
+    sim.run(continuefor=textra, dt=dt*0.001, plot_update_interval=textra, data_collect_interval=0.025)
+    datetime.datetime.now()
     print_concentrations([comp, compl, compr[-1]],
                          title="Ion concentrations given event from the dendritic compartment")
 
@@ -171,7 +174,8 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
             sim.run(continuefor=textra, dt=dt*0.001, plot_update_interval=textra, data_collect_interval=0.025)
             a.gx = 0
 
-    sim.run(continuefor=textra*100, dt=dt*0.001, plot_update_interval=textra*20, data_collect_interval=0.025)
+    sim.run(continuefor=textra*20, dt=dt*0.001, plot_update_interval=textra, data_collect_interval=0.025)
+    datetime.datetime.now()
     print_concentrations([comp, compl, compr[-1]],
                          title="Ion concentrations at end")
 
@@ -560,15 +564,15 @@ if __name__ == "__main__":
             dispose_after = True
     sim.dispose()
     print(args)
-    [sim, gui] = main(new_gx=1, jkccup=0e-25, anion_flux=False, default_xz=-1, nrcomps=11, dz=0, textra=10, grow=0)
+    [sim, gui] = main(new_gx=1, jkccup=0e-25, anion_flux=False, default_xz=-1, nrcomps=7, dz=0, textra=10, grow=0)
 
-    sim.dispose()
-    print(args)
-    [sim, gui] = main(new_gx=1, jkccup=0e-25, anion_flux=True, default_xz=-1, nrcomps=11, dz=0, textra=10, grow=0)
+    #sim.dispose()
+    #print(args)
+    #[sim, gui] = main(new_gx=1, jkccup=0e-25, anion_flux=True, default_xz=-1, nrcomps=7, dz=0, textra=10, grow=0)
 
-    sim.dispose()
-    print(args)
-    [sim, gui] = main(new_gx=0, jkccup=1e-12, anion_flux=False, default_xz=-1, nrcomps=11, dz=0, textra=10, grow=0)
+    #sim.dispose()
+    #print(args)
+    #[sim, gui] = main(new_gx=0, jkccup=1e-12, anion_flux=False, default_xz=-1, nrcomps=7, dz=0, textra=10, grow=0)
 
     # [sim, gui] = main_old()
 
