@@ -71,8 +71,8 @@ class Simulator(object):
         :param continuefor: how long simulation should continue for
         :param stop: time to stop simulation
         :param dt: time step to use for simulation run
-        :param plot_update_interval: frequency to update graphs (in ms)
-        :param data_collect_interval: frequency to collect data for plotting (in ms)
+        :param plot_update_interval: frequency to update graphs (in s)
+        :param data_collect_interval: frequency to collect data for plotting (in s)
         :param block_after: does gui cause a pause/block after run is finished. If False, graphs close immediately upon
         completion (default: True)
         :param print_time: whether to log to the console the simulation time moved forward and length of time taken
@@ -92,7 +92,7 @@ class Simulator(object):
         data_collect_interval_dt = (data_collect_interval / dt)
         plot_update_interval_dt = (plot_update_interval / dt)
         if print_time:
-            print("running from {0}ms until {1}ms with time step of {2} seconds ".format(cls.__time.time, stop, dt))
+            print("running from {0} s until {1} s with time step of {2} seconds ".format(cls.__time.time, stop, dt))
         # get state ready for run
         cls.run_done = False
         if continuefor is None:

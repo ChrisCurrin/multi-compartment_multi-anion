@@ -37,9 +37,9 @@ class Diffusion(TimeMixin):
         Returned diffusion values are relative to comp_a
         """
         for ion, D in self.ions.items():
-            # F in M * dm / ms
+            # F in M * dm / s
             F = self.ficks_law(ion, D)
-            # drift in M * dm / ms
+            # drift in M * dm / s
             d_drift = self.ohms_law(ion, D) * 1
             j_net = (F + d_drift / 2) * _time.dt
             simulator.Simulator.get_instance().to_update(self.comp_a, ion, j_net / self.comp_a.L,
@@ -53,13 +53,13 @@ class Diffusion(TimeMixin):
         """
         Fick's law for diffusion:
         F = -D * dc/dx
-        F is the diffusion flux - the rate of transfer per unit of a section (M/ms * dm)
+        F is the diffusion flux - the rate of transfer per unit of a section (M/s * dm)
         c the concentration of diffusing substance (M)
         x the space coordinate measured normal to the section (dm)
-        D the diffusion coefficient (dm2/ms)
+        D the diffusion coefficient (dm2/s)
         :param ion: name of substance of interest
-        :param D: diffusion coefficient (dm2/ms)
-        :return:  F M*dm/ms
+        :param D: diffusion coefficient (dm2/s)
+        :return:  F M*dm/s
         """
         # difference in ion concentrations
         dc = self.comp_a[ion] - self.comp_b[ion]
@@ -72,15 +72,15 @@ class Diffusion(TimeMixin):
         """
         Ohm's law for drift
         drift = -mu*z*[C]*dV/dx
-        drift is the drift flux (M/ms dm)
-        D the diffusion coefficient (dm2/ms)
+        drift is the drift flux (M/s dm)
+        D the diffusion coefficient (dm2/s)
         RTF is gas constant * temperature / Faraday's constant
         z is valence of the ion
         [C] is concentration of the ion
         V is electric potential (V)
         x the space coordinate measured normal to the section (dm)
         :param ion: name of substance of interest
-        :param D: diffusion coefficient (dm2/ms)
+        :param D: diffusion coefficient (dm2/s)
         :return: drift
         """
         dV = self.comp_a.V - self.comp_b.V

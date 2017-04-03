@@ -24,8 +24,8 @@ class Time(TimeMixin):
     def __init__(self, t=0, dt=1e-3, stop=5):
         """
 
-        :param t: ms
-        :param dt: ms
+        :param t: s
+        :param dt: s
         :param stop:
         """
         if not Time.__monostate:

@@ -35,7 +35,7 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
     print("main")
     sim = Simulator().get_instance()
     gui = sim.gui()
-    dt = 0.001*1e0  # ms
+    dt = 0.001*1e0  # s
 
     length = default_length_short
 
@@ -65,13 +65,10 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
 
     # set diffusion value
     cli_D *= 1e-7  # cm2 to dm2 (D in dm2/s)
-    #cli_D *= 1e-3  # convert to dm2/ms
     ki_D = 1.96
     ki_D *= 1e-7  # cm2 to dm2 (D in dm2/s)
-    #ki_D *= 1e-3  # convert to dm2/ms
     nai_D = 1.33
     nai_D *= 1e-7
-    #nai_D *= 1e-3  # convert to dm2/ms
     diffusion_object = []
 
     # connect with Diffusion
@@ -119,7 +116,7 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
 
     # run simulation with diffusion
     sim.run(continuefor=10, dt=dt, plot_update_interval=10, data_collect_interval=0.025)
-    datetime.datetime.now()
+    print(datetime.datetime.now())
     print_concentrations([comp, compl, compr[-1]],
                          title="Ion concentrations given diffusion between compartments")
 
@@ -160,7 +157,7 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
     # .add_ion_conc(compr[2], "w", line_style='b--')
 
     sim.run(continuefor=textra, dt=dt*0.001, plot_update_interval=textra, data_collect_interval=0.025)
-    datetime.datetime.now()
+    print(datetime.datetime.now())
     print_concentrations([comp, compl, compr[-1]],
                          title="Ion concentrations given event from the dendritic compartment")
 
@@ -175,7 +172,7 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
             a.gx = 0
 
     sim.run(continuefor=textra*20, dt=dt*0.001, plot_update_interval=textra, data_collect_interval=0.025)
-    datetime.datetime.now()
+    print(datetime.datetime.now())
     print_concentrations([comp, compl, compr[-1]],
                          title="Ion concentrations at end")
 
@@ -187,7 +184,7 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
 
 def main_old(cli_D=2.03, new_gx=1e-8, anion_flux=True, default_xz=-0.85, jkccup=None):
     """
-    cli_D  # um2/ms
+    cli_D  # dm2/s
     :return: sim, gui: it is useful to return these objects for access after simulation
     """
     print("main")
@@ -213,9 +210,9 @@ def main_old(cli_D=2.03, new_gx=1e-8, anion_flux=True, default_xz=-0.85, jkccup=
     comp3 = comp.copy("dendrite 2")
 
     # set diffusion value
-    cli_D *= 1e-5 ** 2  # um2 to dm2 (D in dm2/ms)
-    ki_D = 1.96  # um2/ms
-    ki_D *= 1e-5 ** 2  # um2 to dm2 (D in dm2/ms)
+    cli_D *= 1e-5 ** 2  # um2 to dm2 (D in dm2/s)
+    ki_D = 1.96
+    ki_D *= 1e-5 ** 2  # um2 to dm2 (D in dm2/s)
     nai_D = 1.33
     nai_D *= 1e-5 ** 2
 
@@ -386,10 +383,10 @@ def anions():
     comp3 = comp.copy("dendrite 2")
 
     # set diffusion value
-    cli_D = 2.03  # um2/ms
-    cli_D *= 1e-5 ** 2  # um2 to dm2 (D in dm2/ms)
-    ki_D = 1.96  # um2/ms
-    ki_D *= 1e-5 ** 2  # um2 to dm2 (D in dm2/ms)
+    cli_D = 2.03
+    cli_D *= 1e-5 ** 2  # um2 to dm2 (D in dm2/s)
+    ki_D = 1.96
+    ki_D *= 1e-5 ** 2  # um2 to dm2 (D in dm2/s)
     nai_D = 1.33
     nai_D *= 1e-5 ** 2
 
