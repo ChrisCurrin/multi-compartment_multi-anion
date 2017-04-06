@@ -5,7 +5,7 @@ Python 3.x targeted
 @author: Chris Currin & Kira Dusterwalt
 """
 from abc import ABCMeta, abstractmethod
-
+import numpy as np
 
 class TimeMixin(metaclass=ABCMeta):
     @abstractmethod
@@ -21,7 +21,7 @@ class Time(TimeMixin):
     """
     __monostate = None
 
-    def __init__(self, t=0, dt=1e-3, stop=5):
+    def __init__(self, t=0.0, dt=1e-3, stop=5.0):
         """
 
         :param t: s
@@ -31,25 +31,29 @@ class Time(TimeMixin):
         if not Time.__monostate:
             Time.__monostate = self.__dict__
             # Your definitions here
-            self.time = t
-            self.dt = dt
-            self.stop = stop
+            self.time = np.float64(t)
+            self.dt = np.float64(dt)
+            self.stop = np.float64(stop)
         else:
             self.__dict__ = Time.__monostate
 
-    def step(self, dt=None):
+    def step(self):
         """
         Moves forward one time step
-        :return:
         """
-        if dt is None:
-            dt = self.dt
-        else:
-            self.dt = dt
-        self.time += dt
+        self.time += self.dt
+
+    def stepsize(self, dt=None):
+        """
+        Set the step size for each movement of time forward
+        :param dt: change in time aka timestep size 
+        """
+        if dt is not None:
+            self.dt = np.float64(dt)
+        return self.dt
 
     def reset(self):
-        self.time = 0
+        self.time = np.float64(0.0)
 
     def __getitem__(self, item):
         return self.__dict__[item]

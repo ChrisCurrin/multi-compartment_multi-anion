@@ -5,6 +5,7 @@ Python 3.x targeted
 @author: Chris Currin & Kira Dusterwald
 """
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 class Graph(object):
@@ -82,7 +83,11 @@ class Graph(object):
                 line, = self.ax.plot([], [], line_style, label=label)
             plt.pause(0.000001)
             # store
-            self.follow_list.append(((x_object, x_var, []), (y_object, y_var, [], y_units_scale), line))
+            self.follow_list.append(
+                ((x_object, x_var, np.array([], dtype=np.float64)),
+                (y_object, y_var, np.array([], dtype=np.float64), y_units_scale),
+                line))
+            # self.follow_list.append(((x_object, x_var, []), (y_object, y_var, [], y_units_scale), line))
             # auto-legend
             self.ax.legend(loc=3)
             self.update()
@@ -116,7 +121,8 @@ class Graph(object):
         for i, (x_tuple, y_tuple, line) in enumerate(self.follow_list):
             (x_object, x_var, x_data) = x_tuple
             (y_object, y_var, y_data, units_scale) = y_tuple
-            self.follow_list[i] = ((x_object, x_var, []), (y_object, y_var, [], units_scale), line)
+            self.follow_list[i] = ((x_object, x_var, np.array([], dtype=np.float64)),
+                                   (y_object, y_var, np.array([], dtype=np.float64), units_scale), line)
 
     def update(self):
         """
@@ -126,15 +132,19 @@ class Graph(object):
             (x_object, x_var, x_data) = x_tuple
             (y_object, y_var, y_data, units_scale) = y_tuple
             if isinstance(x_var, str):
-                x_data.append(x_object[x_var])
+                x_data = np.append(x_data,x_object[x_var])
             elif isinstance(x_var, dict):
                 for (key, val) in x_var.items():
-                    x_data.append(x_object[key][val])
+                    x_data = np.append(x_data,x_object[key][val])
             if isinstance(y_var, str):
-                y_data.append(y_object[y_var] * units_scale)
+                y_data = np.append(y_data,y_object[y_var] * units_scale)
             elif isinstance(y_var, dict):
                 for (key, val) in y_var.items():
-                    y_data.append(y_object[key][val] * units_scale)
+                    y_data = np.append(y_data,y_object[key][val] * units_scale)
+            # replace object at index i
+            self.follow_list[i] = ((x_object, x_var, x_data),
+                                   (y_object, y_var, y_data, units_scale),
+                                    line)
 
     def plot_graph(self):
         """
@@ -154,7 +164,7 @@ class Graph(object):
             self.fig.canvas.blit(self.ax.bbox)
         self.ax.relim()
         self.ax.autoscale_view()
-        plt.pause(0.001)
+        plt.pause(0.00001)
 
     def handle_close(self, evt):
         """

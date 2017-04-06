@@ -4,9 +4,10 @@ Created on Mon Aug 22 2016
 Python 3.x targeted
 @author: Chris Currin & Kira Dusterwald
 """
-
-from graph import Graph
+import matplotlib
 import matplotlib.pyplot as plt
+from graph import Graph
+matplotlib.use('TkAgg')
 
 
 class GUI(object):
@@ -70,7 +71,6 @@ class GUI(object):
         """
         plt.close('all')
         cls.__graph_list = []
-
 
     @classmethod
     def update_graphs(cls):

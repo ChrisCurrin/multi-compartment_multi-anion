@@ -7,6 +7,7 @@ Python 3.x targeted
 import time
 import sim_time
 from deferred_update import UpdateType, DeferredUpdate
+import numpy as np
 
 
 class Simulator(object):
@@ -62,8 +63,8 @@ class Simulator(object):
         return cls.__single
 
     @classmethod
-    def run(cls, continuefor: float = None, stop: float = None, dt: float = None, plot_update_interval: float = 100,
-            data_collect_interval: float = None, block_after=False, print_time=True):
+    def run(cls, continuefor: np.float64 = None, stop: np.float64 = None, dt: np.float64 = None, plot_update_interval: float = 100,
+            data_collect_interval: np.float64 = None, block_after=False, print_time=True):
         """
         Run a time-based simulation.
         Each time-registered object is moved forward by dt
@@ -81,7 +82,7 @@ class Simulator(object):
         if stop is None:
             stop = cls.__time.stop
         if continuefor is not None:
-            stop = cls.__time.time + continuefor
+            stop = cls.__time.time + np.float64(continuefor)
         if dt is None:
             dt = cls.__time.dt
         if data_collect_interval is None:
@@ -92,15 +93,18 @@ class Simulator(object):
         data_collect_interval_dt = (data_collect_interval / dt)
         plot_update_interval_dt = (plot_update_interval / dt)
         if print_time:
-            print("running from {0} s until {1} s with time step of {2} seconds ".format(cls.__time.time, stop, dt))
-        # get state ready for run
+            print("running from {0:f} s until {1:f} s with time step of {2} seconds ".format(cls.__time.time, stop, dt))        # get state ready for run
         cls.run_done = False
         if continuefor is None:
             cls.__time.reset()
             cls.clear_graphs()
         time.clock()
+        # set timestep value
+        cls.__time.stepsize(dt)
         # go through a simulation
-        for t in range(int(round(cls.__time.time / dt) + 1), int(round(stop / dt)) + 1):
+        t_start = int(round(cls.__time.time / dt))
+        t_stop = int(round(stop / dt))
+        for t in range(t_start, t_stop):
             if t % data_collect_interval_dt == 0:
                 cls.update_graphs()
             if t % plot_update_interval_dt == 0:
@@ -109,10 +113,11 @@ class Simulator(object):
             for compartment in cls.__object_list:
                 compartment.step(cls.__time)
             # move global time step forward
-            cls.__time.step(dt)
+            cls.__time.step()
             # apply updates to objects that required deferred updating of their variables
             cls.__apply_updates()
         cls.run_done = True
+        cls.plot_graphs()
         if print_time:
             print("time taken: {}".format(time.clock()))
         if block_after and cls.__gui is not None:
