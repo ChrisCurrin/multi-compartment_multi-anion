@@ -71,7 +71,7 @@ class Diffusion(TimeMixin):
     def ohms_law(self, ion: str, D: float = None):
         """
         Ohm's law for drift
-        drift = -mu*z*[C]*dV/dx
+        drift = -D*z/RTF*dV/dx*[C]
         drift is the drift flux (M/s dm)
         D the diffusion coefficient (dm2/s)
         RTF is gas constant * temperature / Faraday's constant
