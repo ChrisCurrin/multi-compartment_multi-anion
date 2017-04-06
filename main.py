@@ -61,7 +61,7 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
         compr.append(comp.copy("dendrite right " + str(i + 2)))
 
     # find steady-state values of ions
-    sim.run(stop=50, dt=0.001, plot_update_interval=500, data_collect_interval=5, block_after=False)
+    sim.run(stop=10, dt=0.001, plot_update_interval=500, data_collect_interval=5, block_after=False)
 
     # set diffusion value
     cli_D *= 1e-7  # cm2 to dm2 (D in dm2/s)
@@ -73,9 +73,9 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
 
     # connect with Diffusion
     diffusion_object.append(Diffusion(compl, comp, ions={'cli': cli_D, 'ki': ki_D, 'nai': nai_D}))
-    diffusion_object.append(Diffusion(comp, compr[-1], ions={'cli': cli_D, 'ki': ki_D, 'nai': nai_D}))
+    diffusion_object.append(Diffusion(comp, compr[0], ions={'cli': cli_D, 'ki': ki_D, 'nai': nai_D}))
     for i in range(nrcomps):
-        diffusion_object.append(Diffusion(compr[-2], compr[-1], ions={'cli': cli_D, 'ki': ki_D, 'nai': nai_D}))
+        diffusion_object.append(Diffusion(compr[i], compr[i+1], ions={'cli': cli_D, 'ki': ki_D, 'nai': nai_D}))
 
     # heatmap incorporating compartment heights
     sc = 1e5
@@ -114,8 +114,13 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
         .add_ion_conc(compr[0], "ek", line_style='b', y_units_scale=1000, y_plot_units='mV') \
         .add_voltage(compr[0], line_style='k', y_units_scale=1000, y_plot_units='mV')
 
+    voltage_reversal_graph_comprmid = gui.add_graph() \
+        .add_ion_conc(compr[4], "ecl", line_style='g', y_units_scale=1000, y_plot_units='mV') \
+        .add_ion_conc(compr[4], "ek", line_style='b', y_units_scale=1000, y_plot_units='mV') \
+        .add_voltage(compr[4], line_style='k', y_units_scale=1000, y_plot_units='mV')
+
     # run simulation with diffusion
-    sim.run(continuefor=10, dt=dt, plot_update_interval=10, data_collect_interval=0.025)
+    sim.run(continuefor=1, dt=dt, plot_update_interval=1, data_collect_interval=0.025)
     print(datetime.datetime.now())
     print_concentrations([comp, compl, compr[-1]],
                          title="Ion concentrations given diffusion between compartments")
@@ -131,7 +136,9 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
 
     if comp.gx > 0:
         x_graph = gui.add_graph() \
-            .add_ion_conc(comp, "absox", line_style='m')
+            .add_ion_conc(comp, "absox", line_style='m') \
+            .add_ion_conc(compl, "absox", line_style=':m') \
+            .add_ion_conc(compr[0], "absox", line_style='m--')
 
     # (optionally) change anion flux
     if anion_flux:
@@ -139,8 +146,9 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
         comp.xmz = (comp.z * comp.xi - comp.xz * comp.xi_temp) / comp.xm
         print('Anion flux with fixed anions having net charge', comp.xmz, 'while a proportion of', (1 - comp.ratio),
               'of all impermeants are temporarily mobile anions of charge', comp.xz)
-        z_graph = gui.add_graph() \
-            .add_ion_conc(comp, "z", line_style='m')
+
+    z_graph = gui.add_graph() \
+        .add_ion_conc(comp, "z", line_style='m')
 
     # (optionally) change kcc2
     prev_comp_pkcc2 = comp.pkcc2
@@ -156,22 +164,23 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
     # .add_ion_conc(compr[1], "w", line_style='b--') \
     # .add_ion_conc(compr[2], "w", line_style='b--')
 
-    sim.run(continuefor=textra, dt=dt*0.001, plot_update_interval=textra, data_collect_interval=0.025)
+    sim.run(continuefor=textra, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/16)
     print(datetime.datetime.now())
     print_concentrations([comp, compl, compr[-1]],
                          title="Ion concentrations given event from the dendritic compartment")
 
     comp.gx = prev_comp_gx
-    comp.jkccup = None
+    comp.jkccup = 0
+    comp.dz = 0
 
     if grow == 1:
         for a in compr:
             heatmap(compl, comp, compr, sc, totalh)
             a.gx = 1
-            sim.run(continuefor=textra, dt=dt*0.001, plot_update_interval=textra, data_collect_interval=0.025)
+            sim.run(continuefor=textra, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/16)
             a.gx = 0
 
-    sim.run(continuefor=textra*20, dt=dt*0.001, plot_update_interval=textra, data_collect_interval=0.025)
+    sim.run(continuefor=textra*13, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/4)
     print(datetime.datetime.now())
     print_concentrations([comp, compl, compr[-1]],
                          title="Ion concentrations at end")
@@ -561,7 +570,7 @@ if __name__ == "__main__":
             dispose_after = True
     sim.dispose()
     print(args)
-    [sim, gui] = main(new_gx=1, jkccup=0e-25, anion_flux=False, default_xz=-1, nrcomps=7, dz=0, textra=10, grow=0)
+    [sim, gui] = main(new_gx=1, jkccup=None, anion_flux=False, default_xz=-1, nrcomps=7, dz=0, textra=5, grow=0)
 
     #sim.dispose()
     #print(args)
@@ -577,4 +586,4 @@ if __name__ == "__main__":
         sim.dispose()
     else:
         # run a short sim with the intention of blocking if there is an arg
-        sim.run(continuefor=0.001, dt=0.001, block_after=block_after)
+        sim.run(continuefor=1e-6, dt=1e-6, block_after=block_after)
