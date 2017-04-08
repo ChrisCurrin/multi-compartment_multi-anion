@@ -4,10 +4,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-def cmap(matrix=[1,2,3,4,5],heights=[1,2,3,4,5],totalhts=0,r=-88,h=-78,color='Blues'):
+def cmap(matrix=[1,2,3,4,5],heights=[1,2,3,4,5],totalhts=0,r=-90,h=-85,color='Blues'):
     blank_row=[r]*5
-    if color=='seismic':
-        blank_row=[0]*5
     a=[blank_row]
     change=int(sum(heights)-totalhts)
     if change <0:

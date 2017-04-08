@@ -61,7 +61,7 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
         compr.append(comp.copy("dendrite right " + str(i + 2)))
 
     # find steady-state values of ions
-    sim.run(stop=10, dt=0.001, plot_update_interval=500, data_collect_interval=5, block_after=False)
+    sim.run(stop=100, dt=0.001, plot_update_interval=500, data_collect_interval=5, block_after=False)
 
     # set diffusion value
     cli_D *= 1e-7  # cm2 to dm2 (D in dm2/s)
@@ -81,18 +81,8 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
     sc = 1e5
     if grow == 1:
         sc = 1e6
-    hts = [int(compl.L * sc), int(comp.L * sc)]
-    ecl = [round(compl.ecl, 5), round(comp.ecl, 5)]
-    vm = [round(compl.V, 5), round(comp.V, 5)]
-    for i in compr:
-        hts.append(int(i.L * sc))
-        ecl.append(round(i.ecl, 5))
-        vm.append(round(i.V, 5))
-    df = np.subtract(vm, ecl)
-    totalh = sum(hts)
-    cmap(ecl, hts, totalh)
-    cmap(vm, hts, totalh, r=-100, h=-70, color='Greys')
-    cmap(df, hts, totalh, r=10, h=-10, color='seismic')
+
+    totalht = heatmap(compl, comp, compr, sc, 0, all=1)
 
     voltage_reversal_graph_comp = gui.add_graph() \
         .add_ion_conc(comp, "ecl", line_style='g', y_units_scale=1000, y_plot_units='mV') \
@@ -120,7 +110,7 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
         .add_voltage(compr[4], line_style='k', y_units_scale=1000, y_plot_units='mV')
 
     # run simulation with diffusion
-    sim.run(continuefor=1, dt=dt, plot_update_interval=1, data_collect_interval=0.025)
+    sim.run(continuefor=100, dt=dt, plot_update_interval=1, data_collect_interval=0.025)
     print(datetime.datetime.now())
     print_concentrations([comp, compl, compr[-1]],
                          title="Ion concentrations given diffusion between compartments")
@@ -175,18 +165,18 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
 
     if grow == 1:
         for a in compr:
-            heatmap(compl, comp, compr, sc, totalh)
+            heatmap(compl, comp, compr, sc, totalht)
             a.gx = 1
             sim.run(continuefor=textra, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/16)
             a.gx = 0
 
-    sim.run(continuefor=textra*9, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/4)
+    sim.run(continuefor=textra*3, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/4)
     print(datetime.datetime.now())
     print_concentrations([comp, compl, compr[-1]],
                          title="Ion concentrations at end")
 
     # heatmap incorporating compartment heights
-    heatmap(compl, comp, compr, sc, totalh, all=1)
+    heatmap(compl, comp, compr, sc, totalht, all=1)
 
     return sim, gui
 
@@ -211,11 +201,13 @@ def heatmap(compl, comp, compr, sc, totalh, all=0):
         ecl.append(round(i.ecl, 5))
         vm.append(round(i.V, 5))
     df = np.subtract(vm, ecl)
-    cmap(df, hts, totalh, r=-10, h=10, color='seismic')
+    if totalh == 0:
+        totalh = sum(hts)
+    cmap(df, hts, totalh, r=0, h=10, color='PuRd')
     if all != 0:
         cmap(ecl, hts, totalh)
-        cmap(vm, hts, totalh, -100, h=-70, color='Greys')
-    return
+        cmap(vm, hts, totalh, -85, h=-80, color='Greys')
+    return totalh
 
 
 if __name__ == "__main__":
@@ -243,9 +235,9 @@ if __name__ == "__main__":
             dispose_after = True
     sim.dispose()
     print(args)
-    #[sim, gui] = main(new_gx=1, jkccup=None, anion_flux=False, default_xz=-1, nrcomps=7, dz=0, textra=1, grow=0)
+    [sim, gui] = main(new_gx=1, jkccup=None, anion_flux=False, default_xz=-1, nrcomps=7, dz=0, textra=25, grow=0)
 
-    [sim, gui] = main(new_gx=1, jkccup=0e-25, anion_flux=True, default_xz=-1, nrcomps=7, dz=1e-7, textra=10, grow=0)
+    #[sim, gui] = main(new_gx=0, jkccup=0e-25, anion_flux=False, default_xz=-1, nrcomps=7, dz=1e-7, textra=0, grow=0)
 
     #[sim, gui] = main(new_gx=0, jkccup=1e-12, anion_flux=False, default_xz=-1, nrcomps=7, dz=0, textra=10, grow=0)
 
