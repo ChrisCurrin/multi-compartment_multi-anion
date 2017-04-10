@@ -9,7 +9,7 @@ from simulator import Simulator
 from compartment import Compartment
 from diffusion import Diffusion
 from common import default_length_short, default_radius_short
-from colormap import cmap
+from colormap import heatmap, smallheatmap
 import numpy as np
 import datetime
 
@@ -25,9 +25,61 @@ usage_help = \
                             (control always returned to user; overrides --block)
 """
 
+def grow(length=10e-5, nr=3, textra=10):
+    print("growing via anions")
+    sim = Simulator().get_instance()
+    gui = sim.gui()
+    dt = 0.001  # s
 
-def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-12, nrcomps=2, dz=1e-7, textra=100,
-         grow=0):
+    comp = []
+    comp.append(Compartment("compartment 0", z=-0.85
+                       , cli=0.00433925284075134,
+                       ki=0.1109567493822927,
+                       nai=0.0255226350779378,
+                       length=length,
+                       radius=default_radius_short))
+
+    # steady state
+    sim.run(stop=100, dt=0.001, plot_update_interval=500, data_collect_interval=5, block_after=False)
+
+    # heatmap incorporating compartment heights
+    sc = 1e5
+    totalht = int(length*sc)
+
+    # set diffusion value
+    cli_D = 2.03
+    cli_D *= 1e-7  # cm2 to dm2 (D in dm2/s)
+    ki_D = 1.96
+    ki_D *= 1e-7  # cm2 to dm2 (D in dm2/s)
+    nai_D = 1.33
+    nai_D *= 1e-7
+    diffusion_object = []
+
+    # growth
+    for i in range(nr):
+        smallheatmap(comp, sc, totalht, all=0)
+        comp[i].gx = 1
+
+        # stop at certain length
+        while comp[i].L < 15e-5:
+            print("Fluxing compartment's length: "+str(comp[i].L))
+            sim.run(continuefor=textra, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/16)
+        comp[i].gx = 0
+
+        # split compartments
+        comp.append(comp[i].copy("compartment "+str(i+1)))
+        comp[i+1].L = comp[i].L-10e-5
+        comp[i+1].w = np.pi * comp[i+1].r ** 2 * comp[i+1].L
+        comp[i].L = 10e-5
+        comp[i].w = np.pi * comp[i].r ** 2 * comp[i].L
+        diffusion_object.append(Diffusion(comp[i], comp[i+1], ions={'cli': cli_D, 'ki': ki_D, 'nai': nai_D}))
+
+    sim.run(continuefor=100, dt=dt, plot_update_interval=25, data_collect_interval=5)
+    smallheatmap(comp, sc, totalht, all=1)
+
+    return sim, gui
+
+def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-12, nrcomps=2, dz=1e-7, textra=100):
     """
     cli_D # um2/s
     :return: sim, gui: it is useful to return these objects for access after simulation
@@ -39,16 +91,11 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
 
     length = 10e-5
 
-    if grow == 1:
-        length = 0.5e-5
-        dt = 0.001
-
     comp = Compartment("reference", z=-0.85
                        , cli=0.00433925284075134,
                        ki=0.1109567493822927,
                        nai=0.0255226350779378,
                        length=length,
-                       #length=length / (3.0 + nrcomps),
                        radius=default_radius_short)
 
     # copies left
@@ -79,9 +126,6 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
 
     # heatmap incorporating compartment heights
     sc = 1e5
-    if grow == 1:
-        sc = 1e6
-
     totalht = heatmap(compl, comp, compr, sc, 0, all=1)
 
     voltage_reversal_graph_comp = gui.add_graph() \
@@ -150,9 +194,7 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
     vol_graph = gui.add_graph() \
         .add_ion_conc(comp, "w", line_style='b') \
         .add_ion_conc(compl, "w", line_style=':b') \
-        .add_ion_conc(compr[0], "w", line_style='b--')  # \
-    # .add_ion_conc(compr[1], "w", line_style='b--') \
-    # .add_ion_conc(compr[2], "w", line_style='b--')
+        .add_ion_conc(compr[0], "w", line_style='b--')
 
     sim.run(continuefor=textra, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/16)
     print(datetime.datetime.now())
@@ -163,14 +205,7 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
     comp.jkccup = 0
     comp.dz = 0
 
-    if grow == 1:
-        for a in compr:
-            heatmap(compl, comp, compr, sc, totalht)
-            a.gx = 1
-            sim.run(continuefor=textra, dt=dt*0.0001, plot_update_interval=textra/2, data_collect_interval=textra/16)
-            a.gx = 0
-
-    sim.run(continuefor=textra*3, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/4)
+    sim.run(continuefor=textra*5, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/4)
     print(datetime.datetime.now())
     print_concentrations([comp, compl, compr[-1]],
                          title="Ion concentrations at end")
@@ -191,24 +226,6 @@ def print_concentrations(compartments, title=""):
         for comp in compartments:
             print("{:^2.18f}".format(comp[ion]), end='\t')
         print()
-
-def heatmap(compl, comp, compr, sc, totalh, all=0):
-    hts = [int(compl.L * sc), int(comp.L * sc)]
-    ecl = [round(compl.ecl, 5), round(comp.ecl, 5)]
-    vm = [round(compl.V, 5), round(comp.V, 5)]
-    for i in compr:
-        hts.append(int(i.L * sc))
-        ecl.append(round(i.ecl, 5))
-        vm.append(round(i.V, 5))
-    df = np.subtract(vm, ecl)
-    if totalh == 0:
-        totalh = sum(hts)
-    cmap(df, hts, totalh, r=0, h=10, color='PuRd')
-    if all != 0:
-        cmap(ecl, hts, totalh)
-        cmap(vm, hts, totalh, -85, h=-80, color='Greys')
-    return totalh
-
 
 if __name__ == "__main__":
     argv = sys.argv[1:]  # (first arg is 'python')
@@ -235,14 +252,14 @@ if __name__ == "__main__":
             dispose_after = True
     sim.dispose()
     print(args)
-    #compartment dxi should be 1e-8
-    #[sim, gui] = main(new_gx=1, jkccup=None, anion_flux=False, default_xz=-1, nrcomps=7, dz=0, textra=25, grow=0)
 
-    #[sim, gui] = main(new_gx=0, jkccup=0e-25, anion_flux=False, default_xz=-1, nrcomps=7, dz=1e-7, textra=0, grow=0)
+    #[sim, gui] = main(new_gx=1, jkccup=None, anion_flux=False, default_xz=-1, nrcomps=7, dz=0, textra=25)
 
-    [sim, gui] = main(new_gx=0, jkccup=1e-13, anion_flux=False, default_xz=-1, nrcomps=7, dz=0, textra=10, grow=0)
+    [sim, gui] = main(new_gx=0, jkccup=0e-25, anion_flux=False, default_xz=-1, nrcomps=7, dz=3e-7, textra=25)
 
-    #[sim, gui] = main(new_gx=0, jkccup=1e-12, anion_flux=False, default_xz=-1, nrcomps=3, dz=0, textra=0.001, grow=1)
+    #[sim, gui] = main(new_gx=0, jkccup=1e-13, anion_flux=False, default_xz=-1, nrcomps=7, dz=0, textra=10)
+
+    #[sim, gui] = grow(length=10e-5, nr=3, textra=6)
 
     if dispose_after:
         sim.dispose()
