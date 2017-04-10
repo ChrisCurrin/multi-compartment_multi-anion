@@ -35,19 +35,19 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
     print("main")
     sim = Simulator().get_instance()
     gui = sim.gui()
-    dt = 0.001*1e0  # s
+    dt = 0.001  # s
 
-    length = default_length_short
+    length = 10e-5
 
     if grow == 1:
-        length = 5e-5
+        length = 0.5e-5
         dt = 0.001
 
     comp = Compartment("reference", z=-0.85
                        , cli=0.00433925284075134,
                        ki=0.1109567493822927,
                        nai=0.0255226350779378,
-                       length=10e-5,
+                       length=length,
                        #length=length / (3.0 + nrcomps),
                        radius=default_radius_short)
 
@@ -105,12 +105,12 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
         .add_voltage(compr[0], line_style='k', y_units_scale=1000, y_plot_units='mV')
 
     voltage_reversal_graph_comprmid = gui.add_graph() \
-        .add_ion_conc(compr[4], "ecl", line_style='g', y_units_scale=1000, y_plot_units='mV') \
-        .add_ion_conc(compr[4], "ek", line_style='b', y_units_scale=1000, y_plot_units='mV') \
-        .add_voltage(compr[4], line_style='k', y_units_scale=1000, y_plot_units='mV')
+        .add_ion_conc(compr[int(nrcomps/2)+1], "ecl", line_style='g', y_units_scale=1000, y_plot_units='mV') \
+        .add_ion_conc(compr[int(nrcomps/2)+1], "ek", line_style='b', y_units_scale=1000, y_plot_units='mV') \
+        .add_voltage(compr[int(nrcomps/2)+1], line_style='k', y_units_scale=1000, y_plot_units='mV')
 
     # run simulation with diffusion
-    sim.run(continuefor=100, dt=dt, plot_update_interval=1, data_collect_interval=0.025)
+    sim.run(continuefor=10, dt=dt, plot_update_interval=50, data_collect_interval=10)
     print(datetime.datetime.now())
     print_concentrations([comp, compl, compr[-1]],
                          title="Ion concentrations given diffusion between compartments")
@@ -167,7 +167,7 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
         for a in compr:
             heatmap(compl, comp, compr, sc, totalht)
             a.gx = 1
-            sim.run(continuefor=textra, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/16)
+            sim.run(continuefor=textra, dt=dt*0.0001, plot_update_interval=textra/2, data_collect_interval=textra/16)
             a.gx = 0
 
     sim.run(continuefor=textra*3, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/4)
@@ -235,11 +235,14 @@ if __name__ == "__main__":
             dispose_after = True
     sim.dispose()
     print(args)
-    [sim, gui] = main(new_gx=1, jkccup=None, anion_flux=False, default_xz=-1, nrcomps=7, dz=0, textra=25, grow=0)
+    #compartment dxi should be 1e-8
+    #[sim, gui] = main(new_gx=1, jkccup=None, anion_flux=False, default_xz=-1, nrcomps=7, dz=0, textra=25, grow=0)
 
     #[sim, gui] = main(new_gx=0, jkccup=0e-25, anion_flux=False, default_xz=-1, nrcomps=7, dz=1e-7, textra=0, grow=0)
 
-    #[sim, gui] = main(new_gx=0, jkccup=1e-12, anion_flux=False, default_xz=-1, nrcomps=7, dz=0, textra=10, grow=0)
+    [sim, gui] = main(new_gx=0, jkccup=1e-13, anion_flux=False, default_xz=-1, nrcomps=7, dz=0, textra=10, grow=0)
+
+    #[sim, gui] = main(new_gx=0, jkccup=1e-12, anion_flux=False, default_xz=-1, nrcomps=3, dz=0, textra=0.001, grow=1)
 
     if dispose_after:
         sim.dispose()
