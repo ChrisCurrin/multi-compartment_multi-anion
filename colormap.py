@@ -53,7 +53,7 @@ def smallheatmap(comp, sc, totalh, all=0):
     df = np.subtract(vm, ecl)
     if totalh == 0:
         totalh = sum(hts)
-    cmap(df, hts, totalh, r=0, h=10, color='PuRd')
+    cmap(df, hts, totalh, r=-10, h=10, color='PuRd')
     if all != 0:
         cmap(ecl, hts, totalh)
         cmap(vm, hts, totalh, -85, h=-80, color='Greys')

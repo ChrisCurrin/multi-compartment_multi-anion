@@ -55,6 +55,12 @@ def grow(length=10e-5, nr=3, textra=10):
     nai_D *= 1e-7
     diffusion_object = []
 
+    # plot
+    voltage_reversal_graph_comp = gui.add_graph() \
+        .add_ion_conc(comp[0], "ecl", line_style='g', y_units_scale=1000, y_plot_units='mV') \
+        .add_ion_conc(comp[0], "ek", line_style='b', y_units_scale=1000, y_plot_units='mV') \
+        .add_voltage(comp[0], line_style='k', y_units_scale=1000, y_plot_units='mV')
+
     # growth
     for i in range(nr):
         smallheatmap(comp, sc, totalht, all=0)
@@ -73,8 +79,9 @@ def grow(length=10e-5, nr=3, textra=10):
         comp[i].L = 10e-5
         comp[i].w = np.pi * comp[i].r ** 2 * comp[i].L
         diffusion_object.append(Diffusion(comp[i], comp[i+1], ions={'cli': cli_D, 'ki': ki_D, 'nai': nai_D}))
+        sim.run(continuefor=textra*3, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/16)
 
-    sim.run(continuefor=100, dt=dt, plot_update_interval=25, data_collect_interval=5)
+    sim.run(continuefor=textra*7, dt=dt*0.001, plot_update_interval=25, data_collect_interval=5)
     smallheatmap(comp, sc, totalht, all=1)
 
     return sim, gui
@@ -255,11 +262,11 @@ if __name__ == "__main__":
 
     #[sim, gui] = main(new_gx=1, jkccup=None, anion_flux=False, default_xz=-1, nrcomps=7, dz=0, textra=25)
 
-    [sim, gui] = main(new_gx=0, jkccup=0e-25, anion_flux=False, default_xz=-1, nrcomps=7, dz=3e-7, textra=25)
+    #[sim, gui] = main(new_gx=0, jkccup=0e-25, anion_flux=False, default_xz=-1, nrcomps=7, dz=3e-7, textra=25)
 
     #[sim, gui] = main(new_gx=0, jkccup=1e-13, anion_flux=False, default_xz=-1, nrcomps=7, dz=0, textra=10)
 
-    #[sim, gui] = grow(length=10e-5, nr=3, textra=6)
+    [sim, gui] = grow(length=10e-5, nr=3, textra=6)
 
     if dispose_after:
         sim.dispose()
