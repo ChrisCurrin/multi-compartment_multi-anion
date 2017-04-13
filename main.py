@@ -133,7 +133,7 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
 
     # heatmap incorporating compartment heights
     sc = 1e5
-    totalht = heatmap(compl, comp, compr, sc, 0, all=1)
+    totalht, initvals = heatmap(compl, comp, compr, sc, 0, all=1, init_vals=None)
 
     voltage_reversal_graph_comp = gui.add_graph() \
         .add_ion_conc(comp, "ecl", line_style='g', y_units_scale=1000, y_plot_units='mV') \
@@ -161,7 +161,7 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
         .add_voltage(compr[int(nrcomps/2)+1], line_style='k', y_units_scale=1000, y_plot_units='mV')
 
     # run simulation with diffusion
-    sim.run(continuefor=10, dt=dt, plot_update_interval=50, data_collect_interval=10)
+    sim.run(continuefor=100, dt=dt, plot_update_interval=50, data_collect_interval=10)
     print(datetime.datetime.now())
     print_concentrations([comp, compl, compr[-1]],
                          title="Ion concentrations given diffusion between compartments")
@@ -206,19 +206,28 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
     sim.run(continuefor=textra, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/16)
     print(datetime.datetime.now())
     print_concentrations([comp, compl, compr[-1]],
-                         title="Ion concentrations given event from the dendritic compartment")
+                         title="Ion concentrations during event from the dendritic compartment")
+    # heatmap incorporating compartment heights
+    heatmap(compl, comp, compr, sc, totalht, all=1, init_vals=initvals)
+
+    sim.run(continuefor=textra, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/16)
+    print(datetime.datetime.now())
+    print_concentrations([comp, compl, compr[-1]],
+                         title="Ion concentrations immediately after event from the dendritic compartment")
+    # heatmap incorporating compartment heights
+    heatmap(compl, comp, compr, sc, totalht, all=1, init_vals=initvals)
 
     comp.gx = prev_comp_gx
     comp.jkccup = 0
     comp.dz = 0
 
-    sim.run(continuefor=textra*5, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/4)
+    sim.run(continuefor=textra*8, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/4)
     print(datetime.datetime.now())
     print_concentrations([comp, compl, compr[-1]],
-                         title="Ion concentrations at end")
+                         title="Ion concentrations at steady state")
 
     # heatmap incorporating compartment heights
-    heatmap(compl, comp, compr, sc, totalht, all=1)
+    heatmap(compl, comp, compr, sc, totalht, all=1, init_vals=initvals)
 
     return sim, gui
 
@@ -260,13 +269,13 @@ if __name__ == "__main__":
     sim.dispose()
     print(args)
 
-    #[sim, gui] = main(new_gx=1, jkccup=None, anion_flux=False, default_xz=-1, nrcomps=7, dz=0, textra=25)
+    #[sim, gui] = main(new_gx=1, jkccup=None, anion_flux=False, default_xz=-1, nrcomps=7, dz=0, textra=12.5)
 
-    #[sim, gui] = main(new_gx=0, jkccup=0e-25, anion_flux=False, default_xz=-1, nrcomps=7, dz=3e-7, textra=25)
+    [sim, gui] = main(new_gx=0, jkccup=0e-25, anion_flux=False, default_xz=-1, nrcomps=7, dz=3e-7, textra=12.5)
 
-    #[sim, gui] = main(new_gx=0, jkccup=1e-13, anion_flux=False, default_xz=-1, nrcomps=7, dz=0, textra=10)
+    #[sim, gui] = main(new_gx=0, jkccup=1e-13, anion_flux=False, default_xz=-1, nrcomps=7, dz=0, textra=5)
 
-    [sim, gui] = grow(length=10e-5, nr=3, textra=6)
+    #[sim, gui] = grow(length=10e-5, nr=3, textra=6)
 
     if dispose_after:
         sim.dispose()
