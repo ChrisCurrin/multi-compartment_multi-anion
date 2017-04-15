@@ -221,7 +221,7 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
     comp.jkccup = 0
     comp.dz = 0
 
-    sim.run(continuefor=textra*8, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/4)
+    sim.run(continuefor=textra*4, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/4)
     print(datetime.datetime.now())
     print_concentrations([comp, compl, compr[-1]],
                          title="Ion concentrations at steady state")
@@ -271,9 +271,9 @@ if __name__ == "__main__":
 
     #[sim, gui] = main(new_gx=1, jkccup=None, anion_flux=False, default_xz=-1, nrcomps=7, dz=0, textra=12.5)
 
-    [sim, gui] = main(new_gx=0, jkccup=0e-25, anion_flux=False, default_xz=-1, nrcomps=7, dz=3e-7, textra=12.5)
+    #[sim, gui] = main(new_gx=0, jkccup=0e-25, anion_flux=False, default_xz=-1, nrcomps=7, dz=3e-7, textra=12.5)
 
-    #[sim, gui] = main(new_gx=0, jkccup=1e-13, anion_flux=False, default_xz=-1, nrcomps=7, dz=0, textra=5)
+    [sim, gui] = main(new_gx=0, jkccup=1e-13, anion_flux=False, default_xz=-1, nrcomps=7, dz=0, textra=5)
 
     #[sim, gui] = grow(length=10e-5, nr=3, textra=6)
 

@@ -25,7 +25,6 @@ def cmap(matrix=[1,2,3,4,5],heights=[1,2,3,4,5],totalhts=0,r=0,h=5,color='hot'):
     plt.show()
 
 def heatmap(compl, comp, compr, sc, totalh, all=0, init_vals=None):
-    print(init_vals)
     hts = [int(compl.L * sc), int(comp.L * sc)]
     ecl = [round(compl.ecl, 5), round(comp.ecl, 5)]
     vm = [round(compl.V, 5), round(comp.V, 5)]
@@ -39,10 +38,10 @@ def heatmap(compl, comp, compr, sc, totalh, all=0, init_vals=None):
     if init_vals == None:
         init_vals = [df,ecl,vm]
     else:
-        cmap(np.subtract(df,init_vals[0]), hts, totalh)
+        cmap(np.abs(np.subtract(df,init_vals[0])), hts, totalh)
         if all != 0:
-            cmap(np.subtract(init_vals[1],ecl), hts, totalh)
-            cmap(np.subtract(init_vals[2],vm), hts, totalh)
+            cmap(np.abs(np.subtract(init_vals[1],ecl)), hts, totalh)
+            cmap(np.abs(np.subtract(init_vals[2],vm)), hts, totalh)
     return totalh, init_vals
 
 def smallheatmap(comp, sc, totalh, all=0):
