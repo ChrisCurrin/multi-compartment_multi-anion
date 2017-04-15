@@ -45,6 +45,7 @@ def grow(length=10e-5, nr=3, textra=10):
     # heatmap incorporating compartment heights
     sc = 1e5
     totalht = int(length*sc)
+    totalht, init_vals = smallheatmap(comp, sc, totalht, all=0, init_val=None)
 
     # set diffusion value
     cli_D = 2.03
@@ -63,7 +64,7 @@ def grow(length=10e-5, nr=3, textra=10):
 
     # growth
     for i in range(nr):
-        smallheatmap(comp, sc, totalht, all=0)
+        smallheatmap(comp, sc, totalht, all=0, init_val=init_vals)
         comp[i].gx = 1
 
         # stop at certain length
@@ -82,7 +83,7 @@ def grow(length=10e-5, nr=3, textra=10):
         sim.run(continuefor=textra*3, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/16)
 
     sim.run(continuefor=textra*7, dt=dt*0.001, plot_update_interval=25, data_collect_interval=5)
-    smallheatmap(comp, sc, totalht, all=1)
+    smallheatmap(comp, sc, totalht, all=1, init_val=init_vals)
 
     return sim, gui
 
@@ -273,9 +274,9 @@ if __name__ == "__main__":
 
     #[sim, gui] = main(new_gx=0, jkccup=0e-25, anion_flux=False, default_xz=-1, nrcomps=7, dz=3e-7, textra=12.5)
 
-    [sim, gui] = main(new_gx=0, jkccup=1e-13, anion_flux=False, default_xz=-1, nrcomps=7, dz=0, textra=5)
+    #[sim, gui] = main(new_gx=0, jkccup=1e-13, anion_flux=False, default_xz=-1, nrcomps=7, dz=0, textra=5)
 
-    #[sim, gui] = grow(length=10e-5, nr=3, textra=6)
+    [sim, gui] = grow(length=10e-5, nr=5, textra=6)
 
     if dispose_after:
         sim.dispose()

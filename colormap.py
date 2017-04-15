@@ -44,22 +44,33 @@ def heatmap(compl, comp, compr, sc, totalh, all=0, init_vals=None):
             cmap(np.abs(np.subtract(init_vals[2],vm)), hts, totalh)
     return totalh, init_vals
 
-def smallheatmap(comp, sc, totalh, all=0):
+def smallheatmap(comp, sc, totalh, all=0, init_val=None):
     hts = []
     ecl = []
     vm = []
+    init_vals = init_val
     for i in comp:
         hts.append(int(i.L * sc))
         ecl.append(round(i.ecl, 5))
         vm.append(round(i.V, 5))
+        if init_val != None:
+            for a in range(3):
+                init_vals[a].append(init_vals[a][0])
+    if init_val != None:
+        init_vals[0].pop()
+        init_vals[1].pop()
+        init_vals[2].pop()
     df = np.subtract(vm, ecl)
     if totalh == 0:
         totalh = sum(hts)
-    cmap(df, hts, totalh, r=-10, h=10, color='hot')
-    if all != 0:
-        cmap(ecl, hts, totalh)
-        cmap(vm, hts, totalh, -85, h=-80, color='hot')
-    return totalh
+    if init_val == None:
+        init_vals = [[df[0]],[ecl[0]],[vm[0]]]
+    else:
+        cmap(np.abs(np.subtract(df,init_vals[0])), hts, totalh)
+        if all != 0:
+            cmap(np.abs(np.subtract(init_vals[1],ecl)), hts, totalh)
+            cmap(np.abs(np.subtract(init_vals[2],vm)), hts, totalh)
+    return totalh, init_vals
 
 if __name__=="__main__":
     cmap()
