@@ -80,9 +80,9 @@ def grow(length=10e-5, nr=3, textra=10):
         comp[i].L = 10e-5
         comp[i].w = np.pi * comp[i].r ** 2 * comp[i].L
         diffusion_object.append(Diffusion(comp[i], comp[i+1], ions={'cli': cli_D, 'ki': ki_D, 'nai': nai_D}))
-        sim.run(continuefor=textra*3, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/16)
+        sim.run(continuefor=textra*6, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/16)
 
-    sim.run(continuefor=textra*7, dt=dt*0.001, plot_update_interval=25, data_collect_interval=5)
+    sim.run(continuefor=textra*10, dt=dt*0.001, plot_update_interval=25, data_collect_interval=5)
     smallheatmap(comp, sc, totalht, all=1, init_val=init_vals)
 
     return sim, gui

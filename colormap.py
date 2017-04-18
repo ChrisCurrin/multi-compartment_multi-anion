@@ -45,10 +45,14 @@ def heatmap(compl, comp, compr, sc, totalh, all=0, init_vals=None):
     return totalh, init_vals
 
 def smallheatmap(comp, sc, totalh, all=0, init_val=None):
+    print(init_val)
     hts = []
     ecl = []
     vm = []
-    init_vals = init_val
+    if init_val != None:
+        init_vals = [[init_val[0][0]],[init_val[1][0]],[init_val[2][0]]]
+    else:
+        init_vals = init_val
     for i in comp:
         hts.append(int(i.L * sc))
         ecl.append(round(i.ecl, 5))
@@ -56,6 +60,7 @@ def smallheatmap(comp, sc, totalh, all=0, init_val=None):
         if init_val != None:
             for a in range(3):
                 init_vals[a].append(init_vals[a][0])
+    print(init_vals)
     if init_val != None:
         init_vals[0].pop()
         init_vals[1].pop()
