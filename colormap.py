@@ -49,6 +49,7 @@ def smallheatmap(comp, sc, totalh, all=0, init_val=None):
     hts = []
     ecl = []
     vm = []
+    zeroes = []
     if init_val != None:
         init_vals = [[init_val[0][0]],[init_val[1][0]],[init_val[2][0]]]
     else:
@@ -58,6 +59,7 @@ def smallheatmap(comp, sc, totalh, all=0, init_val=None):
         ecl.append(round(i.ecl, 5))
         vm.append(round(i.V, 5))
         if init_val != None:
+            zeroes.append(0)
             for a in range(3):
                 init_vals[a].append(init_vals[a][0])
     print(init_vals)
@@ -72,6 +74,7 @@ def smallheatmap(comp, sc, totalh, all=0, init_val=None):
         init_vals = [[df[0]],[ecl[0]],[vm[0]]]
     else:
         cmap(np.abs(np.subtract(df,init_vals[0])), hts, totalh)
+        cmap(zeroes, hts, totalh)
         if all != 0:
             cmap(np.abs(np.subtract(init_vals[1],ecl)), hts, totalh)
             cmap(np.abs(np.subtract(init_vals[2],vm)), hts, totalh)

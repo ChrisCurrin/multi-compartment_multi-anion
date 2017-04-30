@@ -44,7 +44,7 @@ def grow(length=10e-5, nr=3, textra=10):
 
     # heatmap incorporating compartment heights
     sc = 1e5
-    totalht = int(length*sc)
+    totalht = int((length+length/2)*sc)
     totalht, init_vals = smallheatmap(comp, sc, totalht, all=0, init_val=None)
 
     # set diffusion value
@@ -54,7 +54,14 @@ def grow(length=10e-5, nr=3, textra=10):
     ki_D *= 1e-7  # cm2 to dm2 (D in dm2/s)
     nai_D = 1.33
     nai_D *= 1e-7
-    diffusion_object = []
+
+    #another compartment
+    comp.append(comp[0].copy("compartment 1"))
+    comp[-1].L = length/2.0
+    comp[-1].w = np.pi * comp[-1].r ** 2 * comp[-1].L
+    diffusion_object = [Diffusion(comp[0], comp[1], ions={'cli': cli_D, 'ki': ki_D, 'nai': nai_D})]
+
+    sim.run(continuefor=textra, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/16)
 
     # plot
     voltage_reversal_graph_comp = gui.add_graph() \
@@ -65,21 +72,21 @@ def grow(length=10e-5, nr=3, textra=10):
     # growth
     for i in range(nr):
         smallheatmap(comp, sc, totalht, all=0, init_val=init_vals)
-        comp[i].gx = 1
+        comp[-1].gx = 1
 
         # stop at certain length
-        while comp[i].L < 15e-5:
-            print("Fluxing compartment's length: "+str(comp[i].L))
+        while comp[-1].L < 10e-5:
+            print("Fluxing compartment's length: "+str(comp[-1].L))
             sim.run(continuefor=textra, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/16)
-        comp[i].gx = 0
+        comp[-1].gx = 0
 
         # split compartments
-        comp.append(comp[i].copy("compartment "+str(i+1)))
-        comp[i+1].L = comp[i].L-10e-5
-        comp[i+1].w = np.pi * comp[i+1].r ** 2 * comp[i+1].L
-        comp[i].L = 10e-5
-        comp[i].w = np.pi * comp[i].r ** 2 * comp[i].L
-        diffusion_object.append(Diffusion(comp[i], comp[i+1], ions={'cli': cli_D, 'ki': ki_D, 'nai': nai_D}))
+        comp.append(comp[-1].copy("compartment "+str(i+1)))
+        comp[-1].L = comp[-2].L-5e-5
+        comp[-1].w = np.pi * comp[-1].r ** 2 * comp[-1].L
+        comp[-2].L = 10e-5
+        comp[-2].w = np.pi * comp[-2].r ** 2 * comp[-2].L
+        diffusion_object.append(Diffusion(comp[-2], comp[-1], ions={'cli': cli_D, 'ki': ki_D, 'nai': nai_D}))
         sim.run(continuefor=textra*6, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/16)
 
     sim.run(continuefor=textra*10, dt=dt*0.001, plot_update_interval=25, data_collect_interval=5)
@@ -276,7 +283,7 @@ if __name__ == "__main__":
 
     #[sim, gui] = main(new_gx=0, jkccup=1e-13, anion_flux=False, default_xz=-1, nrcomps=7, dz=0, textra=5)
 
-    [sim, gui] = grow(length=10e-5, nr=5, textra=6)
+    [sim, gui] = grow(length=10e-5, nr=2, textra=6)
 
     if dispose_after:
         sim.dispose()
