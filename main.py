@@ -36,7 +36,7 @@ def grow(length=10e-5, nr=3, textra=10):
                        , cli=0.00433925284075134,
                        ki=0.1109567493822927,
                        nai=0.0255226350779378,
-                       length=length,
+                       length=length/2.0,
                        radius=default_radius_short))
 
     # steady state
@@ -44,8 +44,8 @@ def grow(length=10e-5, nr=3, textra=10):
 
     # heatmap incorporating compartment heights
     sc = 1e5
-    totalht = int((length+length/2)*sc)
-    totalht, init_vals = smallheatmap(comp, sc, totalht, all=0, init_val=None)
+    ht = (length+length/2)
+    totalht, init_vals = smallheatmap(comp, sc, int(ht*sc), all=0, init_val=None)
 
     # set diffusion value
     cli_D = 2.03
@@ -57,11 +57,9 @@ def grow(length=10e-5, nr=3, textra=10):
 
     #another compartment
     comp.append(comp[0].copy("compartment 1"))
-    comp[-1].L = length/2.0
-    comp[-1].w = np.pi * comp[-1].r ** 2 * comp[-1].L
+    comp[1].L = length
+    comp[1].w = np.pi * comp[1].r ** 2 * comp[1].L
     diffusion_object = [Diffusion(comp[0], comp[1], ions={'cli': cli_D, 'ki': ki_D, 'nai': nai_D})]
-
-    sim.run(continuefor=textra, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/16)
 
     # plot
     voltage_reversal_graph_comp = gui.add_graph() \
@@ -69,24 +67,37 @@ def grow(length=10e-5, nr=3, textra=10):
         .add_ion_conc(comp[0], "ek", line_style='b', y_units_scale=1000, y_plot_units='mV') \
         .add_voltage(comp[0], line_style='k', y_units_scale=1000, y_plot_units='mV')
 
+    volume_graph = gui.add_graph() \
+        .add_ion_conc(comp[0], "w", line_style='k') \
+        #.add_var(sim.time,"time",float,"ht",line_style='b')
+
+    sim.run(continuefor=textra, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/16)
+
     # growth
     for i in range(nr):
         smallheatmap(comp, sc, totalht, all=0, init_val=init_vals)
-        comp[-1].gx = 1
+        comp[0].gx = 1
 
         # stop at certain length
-        while comp[-1].L < 10e-5:
-            print("Fluxing compartment's length: "+str(comp[-1].L))
+        while comp[0].L < 10e-5:
+            print("Fluxing compartment's length: "+str(comp[0].L))
             sim.run(continuefor=textra, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/16)
-        comp[-1].gx = 0
+            ht = 0
+            for i in range(len(comp)):
+                ht += comp[i].L
+        comp[0].gx = 0
 
         # split compartments
-        comp.append(comp[-1].copy("compartment "+str(i+1)))
-        comp[-1].L = comp[-2].L-5e-5
-        comp[-1].w = np.pi * comp[-1].r ** 2 * comp[-1].L
-        comp[-2].L = 10e-5
-        comp[-2].w = np.pi * comp[-2].r ** 2 * comp[-2].L
-        diffusion_object.append(Diffusion(comp[-2], comp[-1], ions={'cli': cli_D, 'ki': ki_D, 'nai': nai_D}))
+        comp.append(comp[0].copy("compartment "+str(i+1)))
+        comp[1].L = comp[0].L-5e-5
+        comp[1].w = np.pi * comp[1].r ** 2 * comp[1].L
+        comp[0].L = 5e-5
+        comp[0].w = np.pi * comp[0].r ** 2 * comp[0].L
+
+        # update diffusion
+        diffusion_object=[]
+        for i in range(len(comp)-1):
+            diffusion_object.append(Diffusion(comp[i], comp[i+1], ions={'cli': cli_D, 'ki': ki_D, 'nai': nai_D}))
         sim.run(continuefor=textra*6, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/16)
 
     sim.run(continuefor=textra*10, dt=dt*0.001, plot_update_interval=25, data_collect_interval=5)
@@ -229,7 +240,7 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
     comp.jkccup = 0
     comp.dz = 0
 
-    sim.run(continuefor=textra*4, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/4)
+    sim.run(continuefor=textra*18, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/4)
     print(datetime.datetime.now())
     print_concentrations([comp, compl, compr[-1]],
                          title="Ion concentrations at steady state")
@@ -281,9 +292,9 @@ if __name__ == "__main__":
 
     #[sim, gui] = main(new_gx=0, jkccup=0e-25, anion_flux=False, default_xz=-1, nrcomps=7, dz=3e-7, textra=12.5)
 
-    #[sim, gui] = main(new_gx=0, jkccup=1e-13, anion_flux=False, default_xz=-1, nrcomps=7, dz=0, textra=5)
+    [sim, gui] = main(cli_D=1.01,new_gx=0, jkccup=1e-13, anion_flux=False, default_xz=-1, nrcomps=7, dz=0, textra=5)
 
-    [sim, gui] = grow(length=10e-5, nr=2, textra=6)
+    #[sim, gui] = grow(length=10e-5, nr=2, textra=1)
 
     if dispose_after:
         sim.dispose()
