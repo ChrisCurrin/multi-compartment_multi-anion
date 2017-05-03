@@ -112,6 +112,8 @@ class Simulator(object):
             # go through each object and process it's step
             for compartment in cls.__object_list:
                 compartment.step(cls.__time)
+            for colormap in cls.__object_list:
+                colormap.step(cls.__time)
             # move global time step forward
             cls.__time.step()
             # apply updates to objects that required deferred updating of their variables
@@ -141,6 +143,18 @@ class Simulator(object):
             cls.__object_list.append(compartment)
         else:
             raise TypeError("Compartment instance expected {0} given".format(type(compartment)))
+
+    @classmethod
+    def register_colormap(cls, colormap):
+        """
+        As above but for colormap object (compartment heights)
+        :param colormap:
+        :return:
+        """
+        if isinstance(colormap, sim_time.TimeMixin):
+            cls.__object_list.append(colormap)
+        else:
+            raise TypeError("Compartment instance expected {0} given".format(type(colormap)))
 
     @classmethod
     def to_update(cls, obj: object, var: str, value: any, update_type: UpdateType):

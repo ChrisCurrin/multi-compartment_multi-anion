@@ -4,6 +4,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from sim_time import TimeMixin, Time
+import simulator
+from deferred_update import UpdateType
 
 class Colormap(TimeMixin):
 
@@ -11,6 +13,7 @@ class Colormap(TimeMixin):
         self.name = name
         self.totalh = totalh
         self.comp = comp
+        simulator.Simulator.get_instance().register_colormap(self)
 
     def cmap(self, matrix=[1,2,3,4,5],heights=[1,2,3,4,5],totalhts=0,r=0,h=5,color='hot'):
         blank_row=[h]*5
@@ -89,8 +92,13 @@ class Colormap(TimeMixin):
         return totalh, init_vals
 
     def step(self, _time: Time = None):
+        simulator.Simulator.get_instance().to_update(self, self.name, self.update_values, UpdateType.FUNCTION)
+
+    def update_values(self):
+        new_w = 0
         for i in range(len(self.comp)):
-            self.totalh += self.comp[i].w
+            new_w += self.comp[i].w
+        self.totalh = new_w
 
     def __getitem__(self, item):
-        return self.__dict__[item]
+        return getattr(self, item)
