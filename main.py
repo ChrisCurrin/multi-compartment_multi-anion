@@ -25,7 +25,7 @@ usage_help = \
                             (control always returned to user; overrides --block)
 """
 
-def grow(length=10e-5, nr=3, textra=10):
+def grow(nr=3, textra=10):
     print("growing via anions")
     sim = Simulator().get_instance()
     gui = sim.gui()
@@ -36,7 +36,7 @@ def grow(length=10e-5, nr=3, textra=10):
                             , cli=0.00433925284075134,
                             ki=0.1109567493822927,
                             nai=0.0255226350779378,
-                            length=length/2.0,
+                            length=5e-5,
                             radius=default_radius_short))
 
     # steady state
@@ -52,7 +52,7 @@ def grow(length=10e-5, nr=3, textra=10):
 
     #another compartment
     comp.append(comp[0].copy("compartment 1"))
-    comp[1].L = length
+    comp[1].L = 10e-5
     comp[1].w = np.pi * comp[1].r ** 2 * comp[1].L
     diffusion_object = [Diffusion(comp[0], comp[1], ions={'cli': cli_D, 'ki': ki_D, 'nai': nai_D})]
 
@@ -84,13 +84,17 @@ def grow(length=10e-5, nr=3, textra=10):
         # stop at certain length
         while comp[0].L < 15e-5:
             print("Fluxing compartment's length: "+str(comp[0].L))
-            sim.run(continuefor=textra, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/16)
+            sim.run(continuefor=1, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/16)
+            htplot.smallheatmap(comp, sc, totalht, all=0, init_val=init_vals)
         comp[0].gx = 0
+
+        #sim.run(continuefor=4, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/16)
 
         # split compartments
         comp.append(comp[-1])
         for a in range(1,i_temp):
             comp[-a] = comp[-a-1]
+            print(-a-1)
         comp[1] = comp[0].copy("compartment "+str(i+1))
         comp[1].L = comp[0].L-5e-5
         comp[1].w = np.pi * comp[1].r ** 2 * comp[1].L
@@ -107,10 +111,9 @@ def grow(length=10e-5, nr=3, textra=10):
         for i in range(len(comp)-1):
             diffusion_object.append(Diffusion(comp[i], comp[i+1], ions={'cli': cli_D, 'ki': ki_D, 'nai': nai_D}))
 
-        sim.run(continuefor=4, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/16)
+        sim.run(continuefor=1, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/16)
 
-
-    sim.run(continuefor=4, dt=dt*0.001, plot_update_interval=25, data_collect_interval=5)
+    sim.run(continuefor=1, dt=dt*0.001, plot_update_interval=25, data_collect_interval=5)
     htplot.smallheatmap(comp, sc, totalht, all=1, init_val=init_vals)
 
     return sim, gui
@@ -305,7 +308,7 @@ if __name__ == "__main__":
 
     #[sim, gui] = main(cli_D=0.02,new_gx=0, jkccup=1e-13, anion_flux=False, default_xz=-1, nrcomps=7, dz=0, textra=5)
 
-    [sim, gui] = grow(length=10e-5, nr=3, textra=1)
+    [sim, gui] = grow(nr=3, textra=0.5)
 
     if dispose_after:
         sim.dispose()
