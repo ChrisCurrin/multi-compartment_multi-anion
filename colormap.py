@@ -15,7 +15,7 @@ class Colormap(TimeMixin):
         self.comp = comp
         simulator.Simulator.get_instance().register_colormap(self)
 
-    def cmap(self, matrix=[1,2,3,4,5],heights=[1,2,3,4,5],totalhts=0,r=0,h=5,color='hot'):
+    def cmap(self, matrix=[1,2,3,4,5],heights=[1,2,3,4,5],totalhts=0,r=0,h=5,color='hot',name='default'):
         blank_row=[h]*5
         a=[blank_row]
         change=int(sum(heights)-totalhts)
@@ -33,6 +33,8 @@ class Colormap(TimeMixin):
         plt.imshow(a, cmap=color, interpolation='nearest', vmin=r, vmax=h)
         plt.colorbar()
         plt.axis('off')
+        if name != 'default':
+            plt.savefig(name)
         plt.show()
 
     def heatmap(self,compl, comp, compr, sc, totalh, all=0, init_vals=None):
@@ -55,7 +57,7 @@ class Colormap(TimeMixin):
                 self.cmap(np.abs(np.subtract(init_vals[2],vm)), hts, totalh)
         return totalh, init_vals
 
-    def smallheatmap(self,comp, sc, totalh, all=0, init_val=None):
+    def smallheatmap(self,comp, sc, totalh, all=0, init_val=None,name='default'):
         print(init_val)
         hts = []
         ecl = []
@@ -85,7 +87,7 @@ class Colormap(TimeMixin):
             init_vals = [[df[0]],[ecl[0]],[vm[0]]]
         else:
             self.cmap(np.abs(np.subtract(df,init_vals[0])), hts, totalh)
-            self.cmap(zeroes, hts, totalh)
+            self.cmap(zeroes, hts, totalh,name=name)
             if all != 0:
                 self.cmap(np.abs(np.subtract(init_vals[1],ecl)), hts, totalh)
                 self.cmap(np.abs(np.subtract(init_vals[2],vm)), hts, totalh)

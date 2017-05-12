@@ -72,49 +72,40 @@ def grow(nr=3, textra=10):
 
     volume_graph.add_var(volume_graph.time,"time",htplot,"totalh",line_style='b')
 
-    sim.run(continuefor=2, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/16)
-
-    i_temp = 1
+    sim.run(continuefor=0.25, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/16)
 
     # growth
     for i in range(nr):
-        htplot.smallheatmap(comp, sc, totalht, all=0, init_val=init_vals)
+        htplot.smallheatmap(comp, sc, totalht, all=0, init_val=init_vals, name='graphs/grow_done'+str(i)+'.eps')
         comp[0].gx = 1
 
         # stop at certain length
-        while comp[0].L < 15e-5:
-            print("Fluxing compartment's length: "+str(comp[0].L))
-            sim.run(continuefor=1, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/16)
-            htplot.smallheatmap(comp, sc, totalht, all=0, init_val=init_vals)
-        comp[0].gx = 0
+        #while comp[0].L < 15e-5:
+            #print("Fluxing compartment's length: "+str(comp[0].L))
+            #sim.run(continuefor=0.5, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/16)
+            #if 9.7e-5<comp[0].L<10.3e-5:
+                #htplot.smallheatmap(comp, sc, totalht, all=0, init_val=init_vals, name='graphs/grow_interim'+str(i)+'.eps')
+        #comp[0].gx = 0
 
         #sim.run(continuefor=4, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/16)
 
         # split compartments
-        comp.append(comp[-1])
-        for a in range(1,i_temp):
-            comp[-a] = comp[-a-1]
-            print(-a-1)
-        comp[1] = comp[0].copy("compartment "+str(i+1))
+        comp.insert(0,comp[0].copy("compartment "+str(i)))
         comp[1].L = comp[0].L-5e-5
-        comp[1].w = np.pi * comp[1].r ** 2 * comp[1].L
-
         comp[0].L = 5e-5
         comp[0].w = np.pi * comp[0].r ** 2 * comp[0].L
-        i_temp += 1
+        comp[1].w = np.pi * comp[1].r ** 2 * comp[1].L
 
         # update total height
         htplot.comp = comp
 
         # update diffusion
-        diffusion_object=[]
-        for i in range(len(comp)-1):
-            diffusion_object.append(Diffusion(comp[i], comp[i+1], ions={'cli': cli_D, 'ki': ki_D, 'nai': nai_D}))
+        diffusion_object.append(Diffusion(comp[i+1], comp[i+2], ions={'cli': cli_D, 'ki': ki_D, 'nai': nai_D}))
 
-        sim.run(continuefor=1, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/16)
+        sim.run(continuefor=0.25, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/16)
 
-    sim.run(continuefor=1, dt=dt*0.001, plot_update_interval=25, data_collect_interval=5)
-    htplot.smallheatmap(comp, sc, totalht, all=1, init_val=init_vals)
+    sim.run(continuefor=4, dt=dt*0.001, plot_update_interval=25, data_collect_interval=5)
+    htplot.smallheatmap(comp, sc, totalht, all=1, init_val=init_vals, name='graphs/grow_end.eps')
 
     return sim, gui
 
@@ -308,7 +299,7 @@ if __name__ == "__main__":
 
     #[sim, gui] = main(cli_D=0.02,new_gx=0, jkccup=1e-13, anion_flux=False, default_xz=-1, nrcomps=7, dz=0, textra=5)
 
-    [sim, gui] = grow(nr=3, textra=0.5)
+    [sim, gui] = grow(nr=3, textra=7)
 
     if dispose_after:
         sim.dispose()

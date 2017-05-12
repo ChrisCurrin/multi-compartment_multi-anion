@@ -17,6 +17,7 @@ class Diffusion(TimeMixin):
                 D is the diffusion coefficient for that ion (float) (dm2/s)
         """
         self.name = comp_a.name + '<-' + comp_b.name
+        print(self.name)
         self.comp_a = comp_a
         self.comp_b = comp_b
         self.ions = ions
