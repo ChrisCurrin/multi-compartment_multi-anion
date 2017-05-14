@@ -8,7 +8,7 @@ import sys, getopt
 from simulator import Simulator
 from compartment import Compartment
 from diffusion import Diffusion
-from common import default_length_short, default_radius_short
+from common import default_radius_short
 from colormap import Colormap
 import numpy as np
 import datetime
@@ -32,7 +32,7 @@ def grow(nr=3, textra=10):
     dt = 0.001  # s
 
     comp = []
-    comp.append(Compartment("growth cone", z=-0.85
+    comp.append(Compartment("initial growth cone", z=-0.85
                             , cli=0.00433925284075134,
                             ki=0.1109567493822927,
                             nai=0.0255226350779378,
@@ -67,12 +67,11 @@ def grow(nr=3, textra=10):
         .add_ion_conc(comp[0], "ek", line_style='b', y_units_scale=1000, y_plot_units='mV') \
         .add_voltage(comp[0], line_style='k', y_units_scale=1000, y_plot_units='mV')
 
-    volume_graph = gui.add_graph() \
-        .add_ion_conc(comp[0], "w", line_style='k')
-
+    volume_graph = gui.add_graph()
+    volume_graph.add_var(volume_graph.time,"time",htplot,"comp0w",line_style='k')
     volume_graph.add_var(volume_graph.time,"time",htplot,"totalh",line_style='b')
 
-    sim.run(continuefor=0.25, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/16)
+    sim.run(continuefor=1, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/16)
 
     # growth
     for i in range(nr):
@@ -80,31 +79,39 @@ def grow(nr=3, textra=10):
         comp[0].gx = 1
 
         # stop at certain length
-        #while comp[0].L < 15e-5:
-            #print("Fluxing compartment's length: "+str(comp[0].L))
-            #sim.run(continuefor=0.5, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/16)
-            #if 9.7e-5<comp[0].L<10.3e-5:
-                #htplot.smallheatmap(comp, sc, totalht, all=0, init_val=init_vals, name='graphs/grow_interim'+str(i)+'.eps')
-        #comp[0].gx = 0
-
-        #sim.run(continuefor=4, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/16)
+        while comp[0].L < 15e-5:
+            print("Fluxing compartment's length: "+str(comp[0].L))
+            sim.run(continuefor=0.5, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/16)
+            if 9.9e-5<comp[0].L<10.3e-5:
+                htplot.smallheatmap(comp, sc, totalht, all=0, init_val=init_vals, name='graphs/grow_interim'+str(i)+'.eps')
+        comp[0].gx = 0
+        print_concentrations(comp,str(i))
 
         # split compartments
         comp.insert(0,comp[0].copy("compartment "+str(i)))
-        comp[1].L = comp[0].L-5e-5
+        comp[1].L -= 5e-5
         comp[0].L = 5e-5
         comp[0].w = np.pi * comp[0].r ** 2 * comp[0].L
         comp[1].w = np.pi * comp[1].r ** 2 * comp[1].L
+
+        print_concentrations(comp,str(i))
 
         # update total height
         htplot.comp = comp
 
         # update diffusion
-        diffusion_object.append(Diffusion(comp[i+1], comp[i+2], ions={'cli': cli_D, 'ki': ki_D, 'nai': nai_D}))
+        diffusion_object.append(Diffusion(comp[0], comp[1], ions={'cli': cli_D, 'ki': ki_D, 'nai': nai_D}))
 
-        sim.run(continuefor=0.25, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/16)
+        for a in comp:
+            print(a.name)
 
-    sim.run(continuefor=4, dt=dt*0.001, plot_update_interval=25, data_collect_interval=5)
+        for j in diffusion_object:
+            print(j.name)
+
+        sim.run(continuefor=10, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/16)
+
+    htplot.smallheatmap(comp, sc, totalht, all=1, init_val=init_vals, name='graphs/grow_end.eps')
+    sim.run(continuefor=4, dt=dt*0.001, plot_update_interval=2, data_collect_interval=0.5)
     htplot.smallheatmap(comp, sc, totalht, all=1, init_val=init_vals, name='graphs/grow_end.eps')
 
     return sim, gui

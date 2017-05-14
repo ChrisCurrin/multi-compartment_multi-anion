@@ -13,6 +13,7 @@ class Colormap(TimeMixin):
         self.name = name
         self.totalh = totalh
         self.comp = comp
+        self.comp0w = comp[0].w
         simulator.Simulator.get_instance().register_colormap(self)
 
     def cmap(self, matrix=[1,2,3,4,5],heights=[1,2,3,4,5],totalhts=0,r=0,h=5,color='hot',name='default'):
@@ -101,6 +102,7 @@ class Colormap(TimeMixin):
         for i in range(len(self.comp)):
             new_w += self.comp[i].w
         self.totalh = new_w
+        self.comp0w = self.comp[0].w
 
     def __getitem__(self, item):
         return getattr(self, item)
