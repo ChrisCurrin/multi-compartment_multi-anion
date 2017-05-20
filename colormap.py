@@ -56,6 +56,7 @@ class Colormap(TimeMixin):
             if all != 0:
                 self.cmap(np.abs(np.subtract(init_vals[1],ecl)), hts, totalh)
                 self.cmap(np.abs(np.subtract(init_vals[2],vm)), hts, totalh)
+                print(np.subtract(init_vals[1],ecl))
         return totalh, init_vals
 
     def smallheatmap(self,comp, sc, totalh, all=0, init_val=None,name='default'):

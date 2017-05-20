@@ -162,8 +162,11 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
         diffusion_object.append(Diffusion(compr[i], compr[i+1], ions={'cli': cli_D, 'ki': ki_D, 'nai': nai_D}))
 
     # heatmap incorporating compartment heights
+    Comp=compr
+    Comp.insert(0,compl)
+    Comp.insert(1,comp)
     sc = 1e5
-    htplot = Colormap("cmap",0,[compl,comp,compr])
+    htplot = Colormap("cmap",0,Comp)
     totalht, initvals = htplot.heatmap(compl, comp, compr, sc, 0, all=1, init_vals=None)
 
     voltage_reversal_graph_comp = gui.add_graph() \
@@ -234,7 +237,7 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
         .add_ion_conc(compl, "w", line_style=':b') \
         .add_ion_conc(compr[0], "w", line_style='b--')
 
-    sim.run(continuefor=textra, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/16)
+    sim.run(continuefor=textra, dt=dt*0.001, plot_update_interval=textra/32, data_collect_interval=textra/32)
     print(datetime.datetime.now())
     print_concentrations([comp, compl, compr[-1]],
                          title="Ion concentrations during event from the dendritic compartment")
@@ -252,7 +255,7 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
     comp.jkccup = 0
     comp.dz = 0
 
-    sim.run(continuefor=textra*10, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/4)
+    sim.run(continuefor=textra*5, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/4)
     print(datetime.datetime.now())
     print_concentrations([comp, compl, compr[-1]],
                          title="Ion concentrations at steady state")
@@ -302,11 +305,11 @@ if __name__ == "__main__":
 
     #[sim, gui] = main(new_gx=1, jkccup=None, anion_flux=False, default_xz=-1, nrcomps=7, dz=0, textra=12.5)
 
-    #[sim, gui] = main(new_gx=0, jkccup=0e-25, anion_flux=False, default_xz=-1, nrcomps=7, dz=3e-7, textra=12.5)
+    #[sim, gui] = main(new_gx=0, jkccup=0e-25, anion_flux=False, default_xz=-1, nrcomps=7, dz=3e-7, textra=25)
 
-    #[sim, gui] = main(cli_D=0.02,new_gx=0, jkccup=1e-13, anion_flux=False, default_xz=-1, nrcomps=7, dz=0, textra=5)
+    [sim, gui] = main(new_gx=0, jkccup=1e-13, anion_flux=False, default_xz=-1, nrcomps=7, dz=0, textra=5)
 
-    [sim, gui] = grow(nr=3, textra=7)
+    #[sim, gui] = grow(nr=3, textra=7)
 
     if dispose_after:
         sim.dispose()
