@@ -34,9 +34,11 @@ class Compartment(TimeMixin):
         self.pkcc2 = pkcc2  # strength of kcc2
         self.z = z  # intracellular charge of impermeant anions
         self.w = np.pi * self.r ** 2 * self.L  # initial volume in liters
+        self.sa = 2 * np.pi * self.r * self.L
         #self.Ar = 4e6
-        self.Ar=2.0/self.r # area constant (F and H method)
+        #self.Ar=2.0/self.r # area constant (F and H method)
         self.C = 2e-4  # capacitance (F/dm^2)
+        self.Ar = self.sa / self.w
         # (F/C*area scaling constant)
         self.FinvCAr = F / (self.C * self.Ar)
         # na,k,cl,x: intracellular starting concentrations
@@ -188,7 +190,11 @@ class Compartment(TimeMixin):
         self.xm = (self.xm * self.w) / w2
         self.w = w2
         # affect volume change into length change
-        self.L = self.w / (np.pi * self.r ** 2)
+        self.r = self.w / (np.pi * self.L)
+        self.sa = 2 * np.pi * self.r * (self.L)
+        self.Ar = self.sa / self.w
+        self.FinvCAr = F / (self.C * self.Ar)
+        #self.L = self.w / (np.pi * self.r ** 2)
         self.absox = self.xi * self.w
 
     def copy(self, name):

@@ -16,8 +16,8 @@ class Colormap(TimeMixin):
         self.comp0w = comp[0].w
         simulator.Simulator.get_instance().register_colormap(self)
 
-    def cmap(self, matrix=[1,2,3,4,5],heights=[1,2,3,4,5],totalhts=0,r=0,h=5,color='hot',name='default'):
-        blank_row=[h]*5
+    def cmap(self, matrix=[1,2,3,4,5],rads=[1,2,3,4,5],totalhts=0,r=0,h=5,color='hot',name='default'):
+        blank_row=[h]*20
         a=[blank_row]
         change=int(sum(heights)-totalhts)
         if change <0:

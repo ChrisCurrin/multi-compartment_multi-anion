@@ -129,9 +129,9 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
     length = 10e-5
 
     comp = Compartment("reference", z=-0.85
-                       , cli=0.00433925284075134,
-                       ki=0.1109567493822927,
-                       nai=0.0255226350779378,
+                       , cli=0.0052,
+                       ki=0.1038,
+                       nai=0.0330,
                        length=length,
                        radius=default_radius_short)
 
@@ -169,6 +169,7 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
     htplot = Colormap("cmap",0,Comp)
     totalht, initvals = htplot.heatmap(compl, comp, compr, sc, 0, all=1, init_vals=None)
 
+    """
     voltage_reversal_graph_comp = gui.add_graph() \
         .add_ion_conc(comp, "ecl", line_style='g', y_units_scale=1000, y_plot_units='mV') \
         .add_ion_conc(comp, "ek", line_style='b', y_units_scale=1000, y_plot_units='mV') \
@@ -193,6 +194,7 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
         .add_ion_conc(compr[int(nrcomps/2)+1], "ecl", line_style='g', y_units_scale=1000, y_plot_units='mV') \
         .add_ion_conc(compr[int(nrcomps/2)+1], "ek", line_style='b', y_units_scale=1000, y_plot_units='mV') \
         .add_voltage(compr[int(nrcomps/2)+1], line_style='k', y_units_scale=1000, y_plot_units='mV')
+    """
 
     # run simulation with diffusion
     sim.run(continuefor=100, dt=dt, plot_update_interval=50, data_collect_interval=10)
@@ -222,20 +224,23 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
         print('Anion flux with fixed anions having net charge', comp.xmz, 'while a proportion of', (1 - comp.ratio),
               'of all impermeants are temporarily mobile anions of charge', comp.xz)
 
+    """
     z_graph = gui.add_graph() \
         .add_ion_conc(comp, "z", line_style='m')
-
+    """
+    
     # (optionally) change kcc2
     prev_comp_pkcc2 = comp.pkcc2
     if jkccup is not None:
         comp.jkccup = jkccup
-        g_graph = gui.add_graph() \
+        """g_graph = gui.add_graph() \
             .add_ion_conc(comp, "pkcc2", line_style='k')
 
     vol_graph = gui.add_graph() \
         .add_ion_conc(comp, "w", line_style='b') \
         .add_ion_conc(compl, "w", line_style=':b') \
         .add_ion_conc(compr[0], "w", line_style='b--')
+    """
 
     sim.run(continuefor=textra, dt=dt*0.001, plot_update_interval=textra/32, data_collect_interval=textra/32)
     print(datetime.datetime.now())

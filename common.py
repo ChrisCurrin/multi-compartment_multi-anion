@@ -6,17 +6,17 @@ Python 3.x targeted
 """
 from constants import F, R
 
-T = 25 + 273.15
+T = 37 + 273.15
 RTF = R * T / F
 # permeabilities
-gna = 5e-9
+gna = 1e-8
 gk = 5e-8
 gcl = 1e-8  # gna,gk,gcl: conductances in mS/cm^2 conv to S/dm^2 (10^-3/10^-2) - corrected for neuron
 # stochiometries
 ck = 2
 cna = 3  # cna,ck: pump (ATPase) stoichiometries
 # pump rates
-default_p = 10 ** (-2.432631) / F
+default_p = 10 ** (-2.5) / F
 # concentrations
 nao = 145e-3
 clo = 119e-3
