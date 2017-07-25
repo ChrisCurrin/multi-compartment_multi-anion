@@ -3,6 +3,7 @@ from diffusion import Diffusion
 from compartment import Compartment
 from unittest import TestCase
 from common import default_length
+from tests.slow_increase import slow_increase
 
 
 class TestDiffusion(TestCase):
@@ -38,11 +39,6 @@ class TestDiffusion(TestCase):
                                                          round(comp2[ion], 5)))
         print("\n  V: \t{}:{} \t {}:{}".format(comp.name, round(comp.V, 5), comp2.name, round(comp2.V, 5)))
         self.assertEqual(round(comp[ion], 5), round(comp2[ion], 5))
-        increase_amount = 1e-2
-        # comp.cli += increase_amount
-        print("value changed\nbefore run:\n\t{}:{} \t {}:{}".format(comp.name, round(comp[ion], 5), comp2.name,
-                                                                    round(comp2[ion], 5)))
-        # self.assertNotEqual(round(comp[ion], 5), round(comp2[ion], 5))
         if gui or self.gui:
             g = sim.gui().add_graph()
             g.add_ion_conc(comp2, self.ion, line_style='--g')  # green
@@ -52,7 +48,16 @@ class TestDiffusion(TestCase):
             v.add_voltage(comp, line_style='k')
             # g.ax.set_ylim([comp.cli,comp.cli+increase_amount])
             # v.ax.set_ylim([comp.V-0.02,comp.V+0.02])
-        self.slow_increase(1., increase_amount, comp, ["cli"])
+
+        increase_amount = 1e-2
+        # comp.cli += increase_amount
+        # comp.ki += increase_amount
+        slow_increase(1., increase_amount, comp, ["cli"],dt=0.0000001)
+
+        print("value changed\nbefore run:\n\t{}:{} \t {}:{}".format(comp.name, round(comp[ion], 5), comp2.name,
+                                                                    round(comp2[ion], 5)))
+        # self.assertNotEqual(round(comp[ion], 5), round(comp2[ion], 5))
+
 
         sim.run(continuefor=time_stop, dt=0.001, block_after=False)
 
@@ -60,35 +65,20 @@ class TestDiffusion(TestCase):
         print("after run:\n\t{}:{} \t {}:{}".format(comp.name, round(comp[ion], 5), comp2.name, round(comp2[ion], 5)))
         self.assertEqual(round(comp[ion], 5), round(comp2[ion], 5))
 
-    def slow_increase(self, time: float, total_increase: float, comp: Compartment, ions: list):
-        start = self.sim.time().time
-        goal = start + time
-        dt = 0.0001
-        steps = int(round(time/dt))
-        time_step_increase = total_increase / steps
-        start_conc = comp[ions[0]]
-        for i in range(steps):
-            for ion in ions:
-                # artificially increase concentration
-                comp[ion] += time_step_increase
-            # move 1 time step
-            self.sim.run(continuefor=dt, dt=dt, plot_update_interval=10, block_after=False,print_time=False)
-
     def test_diffusion_compartments(self, **kwargs):
         self.d = Diffusion(self.comp, self.comp2, self.ions)
-        self.run_diffusion(300, True, **kwargs)
+        self.run_diffusion(300, False, **kwargs)
 
     def test_fick_diffusion_compartments(self, **kwargs):
         self.d = FickDiffusion(self.comp, self.comp2, self.ions)
-        self.run_diffusion(200, True, **kwargs)
+        self.run_diffusion(200, False, **kwargs)
 
     def test_ohm_diffusion_compartments(self, **kwargs):
         """
         Test diffusion between compartments with only Ohm's law taken into account.
         """
-        # TODO: fix (well, drift)
         self.d = OhmDiffusion(self.comp, self.comp2, self.ions)
-        self.run_diffusion(10, True, block_after=True,**kwargs)
+        self.run_diffusion(10, False, block_after=False, **kwargs)
 
     def test_ohm_diffusion_compartments_complex(self, **kwargs):
         """
@@ -100,7 +90,7 @@ class TestDiffusion(TestCase):
                                 nai=0.025519187764070129)  # corrected values
         self.comp2 = self.comp.copy("c2")
         self.d = OhmDiffusion(self.comp, self.comp2, self.ions)
-        self.run_diffusion(200, True, block_after=True,**kwargs)
+        self.run_diffusion(1, True, block_after=True, **kwargs)
 
     def test_multi(self):
         self.setUp()

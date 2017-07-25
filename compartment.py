@@ -18,14 +18,14 @@ from sim_time import TimeMixin, Time
 import simulator
 import time
 
-
+nan = float("nan")
 class Compartment(TimeMixin):
     """
 
     """
 
     def __init__(self, name, radius=default_radius, length=default_length,
-                 nai=50e-3, ki=80e-3, cli=0,
+                 nai=0.033, ki=0.1038, cli=0.0052,
                  z=-0.85, gx = 0e-9, pkcc2=1e-8, p=default_p):
         self.unique_id = str(time.time())
         self.name = name
@@ -190,12 +190,17 @@ class Compartment(TimeMixin):
         self.xm = (self.xm * self.w) / w2
         self.w = w2
         # affect volume change into length change
+        self.update_radius()
+        self.absox = self.xi * self.w
+
+    def update_radius(self):
         self.r = self.w / (np.pi * self.L)
         self.sa = 2 * np.pi * self.r * (self.L)
         self.Ar = self.sa / self.w
         self.FinvCAr = F / (self.C * self.Ar)
-        #self.L = self.w / (np.pi * self.r ** 2)
-        self.absox = self.xi * self.w
+
+    def update_length(self):
+        self.L = self.w / (np.pi * self.r ** 2)
 
     def copy(self, name):
         """
@@ -205,15 +210,6 @@ class Compartment(TimeMixin):
         """
         comp = Compartment(name, radius=self.r, length=self.L, pkcc2=self.pkcc2, z=self.z, nai=self.nai, ki=self.ki,
                            cli=self.cli, p=self.p)
-        comp.xi = self.xi
-        # intracellular osmolarity
-        comp.osi = comp.nai + comp.ki + comp.cli + comp.xi
-        comp.nao = nao
-        comp.ko = ko
-        comp.clo = clo
-        # extracellular concentration of impermeants (here w/ zo=-1)
-        comp.V = comp.FinvCAr * (comp.nai + (comp.ki + (comp.z * comp.xi) - comp.cli))
-        # pump rate
         return comp
 
     def deepcopy(self, name):
