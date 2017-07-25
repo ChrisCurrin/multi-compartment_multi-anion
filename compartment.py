@@ -194,7 +194,7 @@ class Compartment(TimeMixin):
         self.absox = self.xi * self.w
 
     def update_radius(self):
-        self.r = self.w / (np.pi * self.L)
+        self.r = np.sqrt(self.w / (np.pi * self.L))
         self.sa = 2 * np.pi * self.r * (self.L)
         self.Ar = self.sa / self.w
         self.FinvCAr = F / (self.C * self.Ar)

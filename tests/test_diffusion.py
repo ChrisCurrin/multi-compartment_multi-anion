@@ -39,6 +39,13 @@ class TestDiffusion(TestCase):
                                                          round(comp2[ion], 5)))
         print("\n  V: \t{}:{} \t {}:{}".format(comp.name, round(comp.V, 5), comp2.name, round(comp2.V, 5)))
         self.assertEqual(round(comp[ion], 5), round(comp2[ion], 5))
+
+
+        increase_amount = 1e-2
+        # comp.cli += increase_amount
+        # comp.ki += increase_amount
+        slow_increase(1., increase_amount, comp, ["cli"],dt=0.0001)
+
         if gui or self.gui:
             g = sim.gui().add_graph()
             g.add_ion_conc(comp2, self.ion, line_style='--g')  # green
@@ -48,11 +55,6 @@ class TestDiffusion(TestCase):
             v.add_voltage(comp, line_style='k')
             # g.ax.set_ylim([comp.cli,comp.cli+increase_amount])
             # v.ax.set_ylim([comp.V-0.02,comp.V+0.02])
-
-        increase_amount = 1e-2
-        # comp.cli += increase_amount
-        # comp.ki += increase_amount
-        slow_increase(1., increase_amount, comp, ["cli"],dt=0.0000001)
 
         print("value changed\nbefore run:\n\t{}:{} \t {}:{}".format(comp.name, round(comp[ion], 5), comp2.name,
                                                                     round(comp2[ion], 5)))
@@ -90,7 +92,7 @@ class TestDiffusion(TestCase):
                                 nai=0.025519187764070129)  # corrected values
         self.comp2 = self.comp.copy("c2")
         self.d = OhmDiffusion(self.comp, self.comp2, self.ions)
-        self.run_diffusion(1, True, block_after=True, **kwargs)
+        self.run_diffusion(100, False, block_after=False, **kwargs)
 
     def test_multi(self):
         self.setUp()
