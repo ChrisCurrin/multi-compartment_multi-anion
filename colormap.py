@@ -19,17 +19,12 @@ class Colormap(TimeMixin):
     def cmap(self, matrix=[1,2,3,4,5],rads=[1,2,3,4,5],totalhts=0,r=0,h=5,color='hot',name='default'):
         blank_row=[h]*20
         a=[blank_row]
-        change=int(sum(heights)-totalhts)
-        if change <0:
-            for i in range(-change):
-                a.append([h]*5)
-        for j in range(len(heights)):
-            for i in range(heights[j]):
-                a.append([matrix[j]*1000]*5)
+        for j in range(len(rads)):
+            rd=round(rads[j])
+            extra=10-rd
+            for i in range(10):
+                a.append(([h]*extra)+([matrix[j]*1000]*rd*2)+([h]*extra))
             a.append(blank_row)
-        if change >0:
-            for i in range(change):
-                a.append(blank_row)
         plt.figure()
         plt.imshow(a, cmap=color, interpolation='nearest', vmin=r, vmax=h)
         plt.colorbar()
@@ -39,11 +34,12 @@ class Colormap(TimeMixin):
         plt.show()
 
     def heatmap(self,compl, comp, compr, sc, totalh, all=0, init_vals=None):
-        hts = [int(compl.L * sc), int(comp.L * sc)]
+        sc=1e6
+        hts = [int(compl.r * sc), int(comp.r * sc)]
         ecl = [round(compl.ecl, 5), round(comp.ecl, 5)]
         vm = [round(compl.V, 5), round(comp.V, 5)]
         for i in compr:
-            hts.append(int(i.L * sc))
+            hts.append(int(i.r * sc))
             ecl.append(round(i.ecl, 5))
             vm.append(round(i.V, 5))
         df = np.subtract(vm, ecl)
