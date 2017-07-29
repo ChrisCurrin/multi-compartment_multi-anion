@@ -165,7 +165,7 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
     Comp=compr
     Comp.insert(0,compl)
     Comp.insert(1,comp)
-    sc = 1e5
+    sc = 1e7
     htplot = Colormap("cmap",0,Comp)
     totalht, initvals = htplot.heatmap(compl, comp, compr, sc, 0, all=1, init_vals=None)
 
@@ -197,7 +197,7 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
     """
 
     # run simulation with diffusion
-    sim.run(continuefor=100, dt=dt, plot_update_interval=50, data_collect_interval=10)
+    sim.run(continuefor=textra*2, dt=dt, plot_update_interval=50, data_collect_interval=10)
     print(datetime.datetime.now())
     print_concentrations([comp, compl, compr[-1]],
                          title="Ion concentrations given diffusion between compartments")
@@ -310,9 +310,9 @@ if __name__ == "__main__":
 
     #[sim, gui] = main(new_gx=1, jkccup=None, anion_flux=False, default_xz=-1, nrcomps=7, dz=0, textra=12.5)
 
-    #[sim, gui] = main(new_gx=0, jkccup=0e-25, anion_flux=False, default_xz=-1, nrcomps=7, dz=3e-7, textra=25)
+    #[sim, gui] = main(new_gx=0, jkccup=0e-25, anion_flux=False, default_xz=-1, nrcomps=7, dz=3e-7, textra=12.5)
 
-    [sim, gui] = main(new_gx=0, jkccup=1e-13, anion_flux=False, default_xz=-1, nrcomps=7, dz=0, textra=5)
+    [sim, gui] = main(new_gx=0, jkccup=1e-13, anion_flux=False, default_xz=-1, nrcomps=7, dz=0, textra=12.5)
 
     #[sim, gui] = grow(nr=3, textra=7)
 

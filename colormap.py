@@ -16,15 +16,17 @@ class Colormap(TimeMixin):
         self.comp0w = comp[0].w
         simulator.Simulator.get_instance().register_colormap(self)
 
-    def cmap(self, matrix=[1,2,3,4,5],rads=[1,2,3,4,5],totalhts=0,r=0,h=5,color='hot',name='default'):
-        blank_row=[h]*20
+    def cmap(self, matrix=[1,2,3,4,5],rads=[1,2,3,4,5],totalhts=0,r=0,h=10,color='hot',name='default'):
+        blank_row=[h]*100
         a=[blank_row]
         for j in range(len(rads)):
             rd=round(rads[j])
-            extra=10-rd
-            for i in range(10):
-                a.append(([h]*extra)+([matrix[j]*1000]*rd*2)+([h]*extra))
+            extra=round((100-rd)/2)
+            extra2=100-extra-rd
+            for i in range(30):
+                a.append(([h]*extra)+([matrix[j]*1000]*rd)+([h]*extra2))
             a.append(blank_row)
+        print(rads)
         plt.figure()
         plt.imshow(a, cmap=color, interpolation='nearest', vmin=r, vmax=h)
         plt.colorbar()
@@ -34,7 +36,7 @@ class Colormap(TimeMixin):
         plt.show()
 
     def heatmap(self,compl, comp, compr, sc, totalh, all=0, init_vals=None):
-        sc=1e6
+        sc=1e7
         hts = [int(compl.r * sc), int(comp.r * sc)]
         ecl = [round(compl.ecl, 5), round(comp.ecl, 5)]
         vm = [round(compl.V, 5), round(comp.V, 5)]
