@@ -116,7 +116,7 @@ def grow(nr=3, textra=10):
 
     return sim, gui
 
-def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-12, nrcomps=2, dz=1e-7, textra=100):
+def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-12, nrcomps=2, dz=1e-7, textra=100, say=''):
     """
     cli_D # um2/s
     :return: sim, gui: it is useful to return these objects for access after simulation
@@ -162,14 +162,11 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
         diffusion_object.append(Diffusion(compr[i], compr[i+1], ions={'cli': cli_D, 'ki': ki_D, 'nai': nai_D}))
 
     # heatmap incorporating compartment heights
-    Comp=compr
-    Comp.insert(0,compl)
-    Comp.insert(1,comp)
     sc = 1e7
-    htplot = Colormap("cmap",0,Comp)
+    htplot = Colormap("cmap",0,compr)
     totalht, initvals = htplot.heatmap(compl, comp, compr, sc, 0, all=1, init_vals=None)
+    htplot.heatmap(compl, comp, compr, sc, totalht, all=1, init_vals=initvals, title=[say+'all_immed_df.eps',say+'all_immed_ecl.eps',say+'all_immed_vm.eps'])
 
-    """
     voltage_reversal_graph_comp = gui.add_graph() \
         .add_ion_conc(comp, "ecl", line_style='g', y_units_scale=1000, y_plot_units='mV') \
         .add_ion_conc(comp, "ek", line_style='b', y_units_scale=1000, y_plot_units='mV') \
@@ -190,22 +187,20 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
         .add_ion_conc(compr[0], "ek", line_style='b', y_units_scale=1000, y_plot_units='mV') \
         .add_voltage(compr[0], line_style='k', y_units_scale=1000, y_plot_units='mV')
 
-    voltage_reversal_graph_comprmid = gui.add_graph() \
-        .add_ion_conc(compr[int(nrcomps/2)+1], "ecl", line_style='g', y_units_scale=1000, y_plot_units='mV') \
-        .add_ion_conc(compr[int(nrcomps/2)+1], "ek", line_style='b', y_units_scale=1000, y_plot_units='mV') \
-        .add_voltage(compr[int(nrcomps/2)+1], line_style='k', y_units_scale=1000, y_plot_units='mV')
-    """
-
     # run simulation with diffusion
     sim.run(continuefor=textra*2, dt=dt, plot_update_interval=50, data_collect_interval=10)
     print(datetime.datetime.now())
     print_concentrations([comp, compl, compr[-1]],
                          title="Ion concentrations given diffusion between compartments")
 
+    htplot.heatmap(compl, comp, compr, sc, totalht, all=1, init_vals=initvals)
+
     # (optionally) change anion conductance
     prev_comp_gx = comp.gx
     comp.gx = new_gx
     comp.dz = dz
+
+    voltage_reversal_graph_comp.save(say+'reference.eps')
 
     if dz != 0:
         z_graph = gui.add_graph() \
@@ -224,30 +219,27 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
         print('Anion flux with fixed anions having net charge', comp.xmz, 'while a proportion of', (1 - comp.ratio),
               'of all impermeants are temporarily mobile anions of charge', comp.xz)
 
-    """
     z_graph = gui.add_graph() \
         .add_ion_conc(comp, "z", line_style='m')
-    """
     
     # (optionally) change kcc2
     prev_comp_pkcc2 = comp.pkcc2
     if jkccup is not None:
         comp.jkccup = jkccup
-        """g_graph = gui.add_graph() \
+        g_graph = gui.add_graph() \
             .add_ion_conc(comp, "pkcc2", line_style='k')
 
     vol_graph = gui.add_graph() \
         .add_ion_conc(comp, "w", line_style='b') \
         .add_ion_conc(compl, "w", line_style=':b') \
         .add_ion_conc(compr[0], "w", line_style='b--')
-    """
 
     sim.run(continuefor=textra, dt=dt*0.001, plot_update_interval=textra/32, data_collect_interval=textra/32)
     print(datetime.datetime.now())
     print_concentrations([comp, compl, compr[-1]],
                          title="Ion concentrations during event from the dendritic compartment")
     # heatmap incorporating compartment heights
-    htplot.heatmap(compl, comp, compr, sc, totalht, all=1, init_vals=initvals)
+    htplot.heatmap(compl, comp, compr, sc, totalht, all=1, init_vals=initvals, title=[say+'all_halfway_df.eps',say+'all_halfway_ecl.eps',say+'all_halfway_vm.eps'])
 
     sim.run(continuefor=textra, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/16)
     print(datetime.datetime.now())
@@ -260,13 +252,25 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
     comp.jkccup = 0
     comp.dz = 0
 
-    sim.run(continuefor=textra*5, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/4)
+    voltage_reversal_graph_comp.save(say+'reference.eps')
+
+    sim.run(continuefor=textra*1, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/4)
+    print(datetime.datetime.now())
+    print_concentrations([comp, compl, compr[-1]],
+                         title="Ion concentrations at almost steady state")
+
+    voltage_reversal_graph_comp.save(say+'reference.eps')
+
+    sim.run(continuefor=textra*2, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/4)
     print(datetime.datetime.now())
     print_concentrations([comp, compl, compr[-1]],
                          title="Ion concentrations at steady state")
 
+    voltage_reversal_graph_comp.save(say+'reference.eps')
+
     # heatmap incorporating compartment heights
-    htplot.heatmap(compl, comp, compr, sc, totalht, all=1, init_vals=initvals)
+    htplot.heatmap(compl, comp, compr, sc, totalht, all=1, init_vals=initvals, title=[say+'all_end_df.eps',say+'all_end_ecl.eps',say+'all_end_vm.eps'])
+    voltage_reversal_graph_comp.save(say+'reference.eps')
 
     return sim, gui
 
@@ -308,11 +312,13 @@ if __name__ == "__main__":
     sim.dispose()
     print(args)
 
-    #[sim, gui] = main(new_gx=1, jkccup=None, anion_flux=False, default_xz=-1, nrcomps=7, dz=0, textra=12.5)
+    #[sim, gui] = main(new_gx=1, jkccup=None, anion_flux=False, default_xz=-1, nrcomps=7, dz=0, textra=10, say='graphs/rad_anionin_')
 
-    #[sim, gui] = main(new_gx=0, jkccup=0e-25, anion_flux=False, default_xz=-1, nrcomps=7, dz=3e-7, textra=12.5)
+    #[sim, gui] = main(new_gx=0, jkccup=0e-25, anion_flux=False, default_xz=-1, nrcomps=7, dz=3e-7, textra=10, say='graphs/rad_dz_')
 
-    [sim, gui] = main(new_gx=0, jkccup=1e-13, anion_flux=False, default_xz=-1, nrcomps=7, dz=0, textra=12.5)
+    [sim, gui] = main(new_gx=0, jkccup=3e-14, anion_flux=False, default_xz=-1, nrcomps=7, dz=0, textra=10, say='graphs/rad_kcc_')
+
+    #[sim, gui] = main(cli_D=0.203,new_gx=0, jkccup=3e-14, anion_flux=False, default_xz=-1, nrcomps=7, dz=0, textra=10, say='graphs/rad_dcli_')
 
     #[sim, gui] = grow(nr=3, textra=7)
 

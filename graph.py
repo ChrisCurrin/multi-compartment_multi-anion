@@ -172,3 +172,6 @@ class Graph(object):
         :param evt:
         """
         print('Closed Figure!')
+
+    def save(self, name):
+        self.fig.savefig(name)

@@ -13,7 +13,8 @@ from common import default_radius, default_length, \
     clo, ko, nao, xo_z, oso, \
     default_p, \
     gk, gna, gcl, \
-    ck, cna
+    ck, cna, \
+    pw, vw
 from sim_time import TimeMixin, Time
 import simulator
 import time
@@ -34,6 +35,7 @@ class Compartment(TimeMixin):
         self.pkcc2 = pkcc2  # strength of kcc2
         self.z = z  # intracellular charge of impermeant anions
         self.w = np.pi * self.r ** 2 * self.L  # initial volume in liters
+        self.w2 = self.w # temporary volume parameter
         self.sa = 2 * np.pi * self.r * self.L
         #self.Ar = 4e6
         #self.Ar=2.0/self.r # area constant (F and H method)
@@ -169,6 +171,8 @@ class Compartment(TimeMixin):
             }
         })
 
+        self.w2 = self.w + _time.dt*(vw*pw*self.sa*(self.osi-oso))
+
         simulator.Simulator.get_instance().to_update(self, self.name, self.update_values, UpdateType.FUNCTION)
 
     def update_values(self):
@@ -180,15 +184,15 @@ class Compartment(TimeMixin):
         self.xi = self.xm + self.xi_temp
         self.osi = self.nai + self.ki + self.cli + self.xi
         # update volume
-        w2 = (self.w * self.osi) / oso  # update volume
+        #w2 = (self.w * self.osi) / oso  # update volume
 
         # correct ionic concentrations by volume change
-        self.nai = (self.nai * self.w) / w2
-        self.ki = (self.ki * self.w) / w2
-        self.cli = (self.cli * self.w) / w2
-        self.xi_temp = (self.xi_temp * self.w) / w2
-        self.xm = (self.xm * self.w) / w2
-        self.w = w2
+        self.nai = (self.nai * self.w) / self.w2
+        self.ki = (self.ki * self.w) / self.w2
+        self.cli = (self.cli * self.w) / self.w2
+        self.xi_temp = (self.xi_temp * self.w) / self.w2
+        self.xm = (self.xm * self.w) / self.w2
+        self.w = self.w2
         # affect volume change into length change
         self.update_radius()
         self.absox = self.xi * self.w

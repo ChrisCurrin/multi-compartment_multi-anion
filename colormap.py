@@ -35,7 +35,7 @@ class Colormap(TimeMixin):
             plt.savefig(name)
         plt.show()
 
-    def heatmap(self,compl, comp, compr, sc, totalh, all=0, init_vals=None):
+    def heatmap(self,compl, comp, compr, sc, totalh, all=0, init_vals=None, title=['default','default','default']):
         sc=1e7
         hts = [int(compl.r * sc), int(comp.r * sc)]
         ecl = [round(compl.ecl, 5), round(comp.ecl, 5)]
@@ -50,11 +50,10 @@ class Colormap(TimeMixin):
         if init_vals == None:
             init_vals = [df,ecl,vm]
         else:
-            self.cmap(np.abs(np.subtract(df,init_vals[0])), hts, totalh)
+            self.cmap(np.abs(np.subtract(df,init_vals[0])), hts, totalh, name=title[0])
             if all != 0:
-                self.cmap(np.abs(np.subtract(init_vals[1],ecl)), hts, totalh)
-                self.cmap(np.abs(np.subtract(init_vals[2],vm)), hts, totalh)
-                print(np.subtract(init_vals[1],ecl))
+                self.cmap(np.abs(np.subtract(init_vals[1],ecl)), hts, totalh, name=title[1])
+                self.cmap(np.abs(np.subtract(init_vals[2],vm)), hts, totalh, name=title[2])
         return totalh, init_vals
 
     def smallheatmap(self,comp, sc, totalh, all=0, init_val=None,name='default'):

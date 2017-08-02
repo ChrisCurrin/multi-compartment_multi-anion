@@ -33,3 +33,6 @@ default_radius_short = 0.5 * 1e-5  # radius in um convert to dm
 default_length_short = 130 * 1e-5  # length in um converted to dm
 
 points_to_plot = 200  # points to plot
+
+vw = 0.018 #partial molar volume of water, dm3/mol
+pw = 0.0015 #osmotic permeability, biological membrane (muscle? unknown), dm s
