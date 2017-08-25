@@ -9,14 +9,14 @@ from constants import F, R
 T = 37 + 273.15
 RTF = R * T / F
 # permeabilities
-gna = 1e-8
-gk = 5e-8
-gcl = 1e-8  # gna,gk,gcl: conductances in mS/cm^2 conv to S/dm^2 (10^-3/10^-2) - corrected for neuron
+gna = 2e-7
+gk = 7e-7
+gcl = 2e-7  # gna,gk,gcl: conductances in mS/cm^2 conv to S/dm^2 (10^-3/10^-2) - corrected for neuron
 # stochiometries
 ck = 2
 cna = 3  # cna,ck: pump (ATPase) stoichiometries
 # pump rates
-default_p = 10 ** (-2.5) / F
+default_p = 1 / F
 # concentrations
 nao = 145e-3
 clo = 119e-3
@@ -30,7 +30,7 @@ default_radius = 5 * 1e-5  # radius in um convert to dm
 default_length = 100 * 1e-5  # length in um converted to dm
 
 default_radius_short = 0.5 * 1e-5  # radius in um convert to dm
-default_length_short = 130 * 1e-5  # length in um converted to dm
+default_length_short = 100 * 1e-5  # length in um converted to dm
 
 points_to_plot = 200  # points to plot
 

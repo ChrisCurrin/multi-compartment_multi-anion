@@ -129,9 +129,9 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
     length = 10e-5
 
     comp = Compartment("reference", z=-0.85
-                       , cli=0.0052,
-                       ki=0.1038,
-                       nai=0.0330,
+                       , cli=0.006,
+                       ki=0.097,
+                       nai=0.04,
                        length=length,
                        radius=default_radius_short)
 
@@ -165,7 +165,7 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
     sc = 1e7
     htplot = Colormap("cmap",0,compr)
     totalht, initvals = htplot.heatmap(compl, comp, compr, sc, 0, all=1, init_vals=None)
-    htplot.heatmap(compl, comp, compr, sc, totalht, all=1, init_vals=initvals, title=[say+'all_immed_df.eps',say+'all_immed_ecl.eps',say+'all_immed_vm.eps'])
+    htplot.heatmap(compl, comp, compr, sc, totalht, all=1, init_vals=initvals)
 
     voltage_reversal_graph_comp = gui.add_graph() \
         .add_ion_conc(comp, "ecl", line_style='g', y_units_scale=1000, y_plot_units='mV') \
@@ -259,14 +259,22 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
     print_concentrations([comp, compl, compr[-1]],
                          title="Ion concentrations at almost steady state")
 
+    htplot.heatmap(compl, comp, compr, sc, totalht, all=1, init_vals=initvals, title=[say+'all_end_df.eps',say+'all_end_ecl.eps',say+'all_end_vm.eps'])
+    voltage_reversal_graph_comp.save(say+'reference.eps')
+
+    sim.run(continuefor=textra*1, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/4)
+    print(datetime.datetime.now())
+    print_concentrations([comp, compl, compr[-1]],
+                         title="Ion concentrations at steady state")
+
+    # heatmap incorporating compartment heights
+    htplot.heatmap(compl, comp, compr, sc, totalht, all=1, init_vals=initvals, title=[say+'all_end_df.eps',say+'all_end_ecl.eps',say+'all_end_vm.eps'])
     voltage_reversal_graph_comp.save(say+'reference.eps')
 
     sim.run(continuefor=textra*2, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/4)
     print(datetime.datetime.now())
     print_concentrations([comp, compl, compr[-1]],
-                         title="Ion concentrations at steady state")
-
-    voltage_reversal_graph_comp.save(say+'reference.eps')
+                     title="Ion concentrations at steady state")
 
     # heatmap incorporating compartment heights
     htplot.heatmap(compl, comp, compr, sc, totalht, all=1, init_vals=initvals, title=[say+'all_end_df.eps',say+'all_end_ecl.eps',say+'all_end_vm.eps'])
@@ -314,11 +322,11 @@ if __name__ == "__main__":
 
     #[sim, gui] = main(new_gx=1, jkccup=None, anion_flux=False, default_xz=-1, nrcomps=7, dz=0, textra=10, say='graphs/rad_anionin_')
 
-    #[sim, gui] = main(new_gx=0, jkccup=0e-25, anion_flux=False, default_xz=-1, nrcomps=7, dz=3e-7, textra=10, say='graphs/rad_dz_')
+    [sim, gui] = main(new_gx=0, jkccup=0e-25, anion_flux=False, default_xz=-1, nrcomps=7, dz=1e-6, textra=10, say='graphs/rad_dz_')
 
-    [sim, gui] = main(new_gx=0, jkccup=3e-14, anion_flux=False, default_xz=-1, nrcomps=7, dz=0, textra=10, say='graphs/rad_kcc_')
+    #[sim, gui] = main(new_gx=0, jkccup=1e-13, anion_flux=False, default_xz=-1, nrcomps=7, dz=0, textra=10, say='graphs/rad_kcc_')
 
-    #[sim, gui] = main(cli_D=0.203,new_gx=0, jkccup=3e-14, anion_flux=False, default_xz=-1, nrcomps=7, dz=0, textra=10, say='graphs/rad_dcli_')
+    #[sim, gui] = main(cli_D=0.203,new_gx=0, jkccup=1e-13, anion_flux=False, default_xz=-1, nrcomps=7, dz=0, textra=10, say='graphs/rad_dcli_')
 
     #[sim, gui] = grow(nr=3, textra=7)
 

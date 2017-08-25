@@ -27,7 +27,7 @@ class Compartment(TimeMixin):
 
     def __init__(self, name, radius=default_radius, length=default_length,
                  nai=0.033, ki=0.1038, cli=0.0052,
-                 z=-0.85, gx = 0e-9, pkcc2=1e-8, p=default_p):
+                 z=-0.85, gx = 0e-9, pkcc2=2e-7, p=default_p):
         self.unique_id = str(time.time())
         self.name = name
         self.r = radius  # in um
@@ -148,7 +148,7 @@ class Compartment(TimeMixin):
         self.dki = dki
         self.dcli = dcli
         if self.gx != 0:
-            dxi = 5e-9*self.Ar*_time.dt
+            dxi = 1e-8*self.Ar*_time.dt
         else:
             dxi = 0
 
