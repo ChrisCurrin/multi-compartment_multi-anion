@@ -116,7 +116,7 @@ def grow(nr=3, textra=10):
 
     return sim, gui
 
-def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-12, nrcomps=2, dz=1e-7, textra=100, say=''):
+def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-12, nrcomps=2, dz=1e-7, textra=100, say='', stretch=False):
     """
     cli_D # um2/s
     :return: sim, gui: it is useful to return these objects for access after simulation
@@ -133,7 +133,7 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
                        ki=0.097,
                        nai=0.04,
                        length=length,
-                       radius=default_radius_short)
+                       radius=default_radius_short, stretch_w=stretch)
 
     # copies left
     compl = comp.copy("dendrite left")
@@ -320,9 +320,9 @@ if __name__ == "__main__":
     sim.dispose()
     print(args)
 
-    #[sim, gui] = main(new_gx=1, jkccup=None, anion_flux=False, default_xz=-1, nrcomps=7, dz=0, textra=10, say='graphs/rad_anionin_')
+    [sim, gui] = main(new_gx=1, jkccup=None, anion_flux=False, default_xz=-1, nrcomps=7, dz=0, textra=10, say='graphs/rad_anionin_stretch', stretch=True)
 
-    [sim, gui] = main(new_gx=0, jkccup=0e-25, anion_flux=False, default_xz=-1, nrcomps=7, dz=1e-6, textra=10, say='graphs/rad_dz_')
+    #[sim, gui] = main(new_gx=1, jkccup=0e-25, anion_flux=True, default_xz=-1, nrcomps=7, dz=0, textra=10, say='graphs/rad_dz_anionin_stretch_', stretch=True)
 
     #[sim, gui] = main(new_gx=0, jkccup=1e-13, anion_flux=False, default_xz=-1, nrcomps=7, dz=0, textra=10, say='graphs/rad_kcc_')
 

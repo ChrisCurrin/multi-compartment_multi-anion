@@ -8,13 +8,13 @@ import numpy as np
 import copy
 from deferred_update import UpdateType
 from constants import F
-from common import RTF
 from common import default_radius, default_length, \
     clo, ko, nao, xo_z, oso, \
     default_p, \
     gk, gna, gcl, \
     ck, cna, \
-    pw, vw
+    pw, vw, km, \
+    RTF, RT
 from sim_time import TimeMixin, Time
 import simulator
 import time
@@ -27,16 +27,18 @@ class Compartment(TimeMixin):
 
     def __init__(self, name, radius=default_radius, length=default_length,
                  nai=0.033, ki=0.1038, cli=0.0052,
-                 z=-0.85, gx = 0e-9, pkcc2=2e-7, p=default_p):
+                 z=-0.85, gx = 0e-9, pkcc2=2e-7, p=default_p, stretch_w=False):
         self.unique_id = str(time.time())
         self.name = name
         self.r = radius  # in um
+        self.r1 = radius
         self.L = length  # in um
         self.pkcc2 = pkcc2  # strength of kcc2
         self.z = z  # intracellular charge of impermeant anions
         self.w = np.pi * self.r ** 2 * self.L  # initial volume in liters
         self.w2 = self.w # temporary volume parameter
         self.sa = 2 * np.pi * self.r * self.L
+        self.stretch_w=stretch_w
         #self.Ar = 4e6
         #self.Ar=2.0/self.r # area constant (F and H method)
         self.C = 2e-4  # capacitance (F/dm^2)
@@ -172,6 +174,9 @@ class Compartment(TimeMixin):
         })
 
         self.w2 = self.w + _time.dt*(vw*pw*self.sa*(self.osi-oso))
+
+        if self.stretch_w == True:
+            self.w2=self.w+_time.dt*(vw*pw*self.sa*(self.osi-oso-4*km*np.pi*(1-self.r1/self.r)/(RT)))
 
         simulator.Simulator.get_instance().to_update(self, self.name, self.update_values, UpdateType.FUNCTION)
 

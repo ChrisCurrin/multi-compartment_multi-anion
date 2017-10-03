@@ -8,6 +8,7 @@ from constants import F, R
 
 T = 37 + 273.15
 RTF = R * T / F
+RT = R * T
 # permeabilities
 gna = 2e-7
 gk = 7e-7
@@ -36,3 +37,4 @@ points_to_plot = 200  # points to plot
 
 vw = 0.018 #partial molar volume of water, dm3/mol
 pw = 0.0015 #osmotic permeability, biological membrane (muscle? unknown), dm s
+km=5*10**(-14) #extensional rigidity of RBC at 23 deg, Mohandas and Evans (1994), N/dm
