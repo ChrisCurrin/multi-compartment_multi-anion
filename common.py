@@ -10,14 +10,14 @@ T = 37 + 273.15
 RTF = R * T / F
 RT = R * T
 # permeabilities
-gna = 2e-7
-gk = 7e-7
-gcl = 2e-7  # gna,gk,gcl: conductances in mS/cm^2 conv to S/dm^2 (10^-3/10^-2) - corrected for neuron
+gna = 2e-3/F
+gk = 7e-3/F
+gcl = 2e-3/F  # gna,gk,gcl: conductances in mS/cm^2 conv to S/dm^2 (10^-3/10^-2) - corrected for neuron
 # stochiometries
 ck = 2
 cna = 3  # cna,ck: pump (ATPase) stoichiometries
 # pump rates
-default_p = 1 / F
+default_p = 0.1 / F
 # concentrations
 nao = 145e-3
 clo = 119e-3
