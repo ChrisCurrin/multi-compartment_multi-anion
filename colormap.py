@@ -26,13 +26,14 @@ class Colormap(TimeMixin):
             for i in range(30):
                 a.append(([h]*extra)+([matrix[j]*1000]*rd)+([h]*extra2))
             a.append(blank_row)
-        print(rads)
+        print("Radii:",rads)
         plt.figure()
         plt.imshow(a, cmap=color, interpolation='nearest', vmin=r, vmax=h)
         plt.colorbar()
         plt.axis('off')
         if name != 'default':
-            plt.savefig(name)
+            #plt.savefig(name)
+            plt.title(name)
         plt.show()
 
     def heatmap(self,compl, comp, compr, sc, totalh, all=0, init_vals=None, title=['default','default','default']):

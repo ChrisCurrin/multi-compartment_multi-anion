@@ -25,97 +25,6 @@ usage_help = \
                             (control always returned to user; overrides --block)
 """
 
-def grow(nr=3, textra=10):
-    print("growing via anions")
-    sim = Simulator().get_instance()
-    gui = sim.gui()
-    dt = 0.001  # s
-
-    comp = []
-    comp.append(Compartment("initial growth cone", z=-0.85
-                            , cli=0.00433925284075134,
-                            ki=0.1109567493822927,
-                            nai=0.0255226350779378,
-                            length=5e-5,
-                            radius=default_radius_short))
-
-    # steady state
-    sim.run(stop=100, dt=0.001, plot_update_interval=500, data_collect_interval=5, block_after=False)
-
-    # set diffusion value
-    cli_D = 2.03
-    cli_D *= 1e-7  # cm2 to dm2 (D in dm2/s)
-    ki_D = 1.96
-    ki_D *= 1e-7  # cm2 to dm2 (D in dm2/s)
-    nai_D = 1.33
-    nai_D *= 1e-7
-
-    #another compartment
-    comp.append(comp[0].copy("compartment 1"))
-    comp[1].L = 10e-5
-    comp[1].w = np.pi * comp[1].r ** 2 * comp[1].L
-    diffusion_object = [Diffusion(comp[0], comp[1], ions={'cli': cli_D, 'ki': ki_D, 'nai': nai_D})]
-
-    # heatmap incorporating compartment heights
-    sc = 1e5
-    htplot = Colormap("dendrite",comp[0].w+comp[1].w,comp)
-    totalht, init_vals = htplot.smallheatmap(comp, sc, int(htplot.totalh*sc), all=0, init_val=None)
-
-    # plot
-    voltage_reversal_graph_comp = gui.add_graph() \
-        .add_ion_conc(comp[0], "ecl", line_style='g', y_units_scale=1000, y_plot_units='mV') \
-        .add_ion_conc(comp[0], "ek", line_style='b', y_units_scale=1000, y_plot_units='mV') \
-        .add_voltage(comp[0], line_style='k', y_units_scale=1000, y_plot_units='mV')
-
-    volume_graph = gui.add_graph()
-    volume_graph.add_var(volume_graph.time,"time",htplot,"comp0w",line_style='k')
-    volume_graph.add_var(volume_graph.time,"time",htplot,"totalh",line_style='b')
-
-    sim.run(continuefor=1, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/16)
-
-    # growth
-    for i in range(nr):
-        htplot.smallheatmap(comp, sc, totalht, all=0, init_val=init_vals, name='graphs/grow_done'+str(i)+'.eps')
-        comp[0].gx = 1
-
-        # stop at certain length
-        while comp[0].L < 15e-5:
-            print("Fluxing compartment's length: "+str(comp[0].L))
-            sim.run(continuefor=0.5, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/16)
-            if 9.9e-5<comp[0].L<10.3e-5:
-                htplot.smallheatmap(comp, sc, totalht, all=0, init_val=init_vals, name='graphs/grow_interim'+str(i)+'.eps')
-        comp[0].gx = 0
-        print_concentrations(comp,str(i))
-
-        # split compartments
-        comp.insert(0,comp[0].copy("compartment "+str(i)))
-        comp[1].L -= 5e-5
-        comp[0].L = 5e-5
-        comp[0].w = np.pi * comp[0].r ** 2 * comp[0].L
-        comp[1].w = np.pi * comp[1].r ** 2 * comp[1].L
-
-        print_concentrations(comp,str(i))
-
-        # update total height
-        htplot.comp = comp
-
-        # update diffusion
-        diffusion_object.append(Diffusion(comp[0], comp[1], ions={'cli': cli_D, 'ki': ki_D, 'nai': nai_D}))
-
-        for a in comp:
-            print(a.name)
-
-        for j in diffusion_object:
-            print(j.name)
-
-        sim.run(continuefor=10, dt=dt*0.001, plot_update_interval=textra/2, data_collect_interval=textra/16)
-
-    htplot.smallheatmap(comp, sc, totalht, all=1, init_val=init_vals, name='graphs/grow_end.eps')
-    sim.run(continuefor=4, dt=dt*0.001, plot_update_interval=2, data_collect_interval=0.5)
-    htplot.smallheatmap(comp, sc, totalht, all=1, init_val=init_vals, name='graphs/grow_end.eps')
-
-    return sim, gui
-
 def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-12, nrcomps=2, dz=1e-7, textra=100, say='', stretch=False):
     """
     cli_D # um2/s
@@ -145,7 +54,7 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
         compr.append(comp.copy("dendrite right " + str(i + 2)))
 
     # find steady-state values of ions
-    sim.run(stop=100, dt=0.001, plot_update_interval=500, data_collect_interval=5, block_after=False)
+    sim.run(stop=100, dt=0.001, plot_update_interval=50, data_collect_interval=5, block_after=False)
 
     # set diffusion value
     cli_D *= 1e-7  # cm2 to dm2 (D in dm2/s)
@@ -188,7 +97,7 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
         .add_voltage(compr[0], line_style='k', y_units_scale=1000, y_plot_units='mV')
 
     # run simulation with diffusion
-    sim.run(continuefor=10, dt=dt, plot_update_interval=10, data_collect_interval=1)
+    sim.run(continuefor=10, dt=dt, plot_update_interval=5, data_collect_interval=1)
     print(datetime.datetime.now())
     print_concentrations([comp, compl, compr[-1]],
                          title="Ion concentrations given diffusion between compartments")
@@ -299,6 +208,97 @@ def main(cli_D=2.03, new_gx=0e-8, anion_flux=False, default_xz=-0.85, jkccup=1e-
     # heatmap incorporating compartment heights
     htplot.heatmap(compl, comp, compr, sc, totalht, all=1, init_vals=initvals, title=[say+'all_end_df.eps',say+'all_end_ecl.eps',say+'all_end_vm.eps'])
     voltage_reversal_graph_comp.save(say+'reference.eps')
+
+    return sim, gui
+
+def grow(nr=3, textra=10):
+    print("growing via anions")
+    sim = Simulator().get_instance()
+    gui = sim.gui()
+    dt = 0.001  # s
+
+    comp = []
+    comp.append(Compartment("initial growth cone", z=-0.85
+                            , cli=0.00433925284075134,
+                            ki=0.1109567493822927,
+                            nai=0.0255226350779378,
+                            length=5e-5,
+                            radius=default_radius_short))
+
+    # steady state
+    sim.run(stop=100, dt=0.001, plot_update_interval=500, data_collect_interval=5, block_after=False)
+
+    # set diffusion value
+    cli_D = 2.03
+    cli_D *= 1e-7  # cm2 to dm2 (D in dm2/s)
+    ki_D = 1.96
+    ki_D *= 1e-7  # cm2 to dm2 (D in dm2/s)
+    nai_D = 1.33
+    nai_D *= 1e-7
+
+    #another compartment
+    comp.append(comp[0].copy("compartment 1"))
+    comp[1].L = 10e-5
+    comp[1].w = np.pi * comp[1].r ** 2 * comp[1].L
+    diffusion_object = [Diffusion(comp[0], comp[1], ions={'cli': cli_D, 'ki': ki_D, 'nai': nai_D})]
+
+    # heatmap incorporating compartment heights
+    sc = 1e5
+    htplot = Colormap("dendrite",comp[0].w+comp[1].w,comp)
+    totalht, init_vals = htplot.smallheatmap(comp, sc, int(htplot.totalh*sc), all=0, init_val=None)
+
+    # plot
+    voltage_reversal_graph_comp = gui.add_graph() \
+        .add_ion_conc(comp[0], "ecl", line_style='g', y_units_scale=1000, y_plot_units='mV') \
+        .add_ion_conc(comp[0], "ek", line_style='b', y_units_scale=1000, y_plot_units='mV') \
+        .add_voltage(comp[0], line_style='k', y_units_scale=1000, y_plot_units='mV')
+
+    volume_graph = gui.add_graph()
+    volume_graph.add_var(volume_graph.time,"time",htplot,"comp0w",line_style='k')
+    volume_graph.add_var(volume_graph.time,"time",htplot,"totalh",line_style='b')
+
+    sim.run(continuefor=1, dt=dt*0.001, plot_update_interval=0.5, data_collect_interval=textra/16)
+
+    # growth
+    for i in range(nr):
+        htplot.smallheatmap(comp, sc, totalht, all=0, init_val=init_vals, name='graphs/grow_done'+str(i)+'.eps')
+        comp[0].gx = 1
+
+        # stop at certain length
+        while comp[0].L < 15e-5:
+            print("Fluxing compartment's length: "+str(comp[0].L))
+            sim.run(continuefor=0.5, dt=dt*0.001, plot_update_interval=0.25, data_collect_interval=textra/16)
+            if 9.9e-5<comp[0].L<10.3e-5:
+                htplot.smallheatmap(comp, sc, totalht, all=0, init_val=init_vals, name='graphs/grow_interim'+str(i)+'.eps')
+        comp[0].gx = 0
+        print_concentrations(comp,str(i))
+
+        # split compartments
+        comp.insert(0,comp[0].copy("compartment "+str(i)))
+        comp[1].L -= 5e-5
+        comp[0].L = 5e-5
+        comp[0].w = np.pi * comp[0].r ** 2 * comp[0].L
+        comp[1].w = np.pi * comp[1].r ** 2 * comp[1].L
+
+        print_concentrations(comp,str(i))
+
+        # update total height
+        htplot.comp = comp
+
+        # update diffusion
+        diffusion_object.append(Diffusion(comp[0], comp[1], ions={'cli': cli_D, 'ki': ki_D, 'nai': nai_D}))
+
+        for a in comp:
+            print(a.name)
+
+        for j in diffusion_object:
+            print(j.name)
+
+        sim.run(continuefor=10, dt=dt*0.001, plot_update_interval=5, data_collect_interval=textra/16)
+
+    htplot.smallheatmap(comp, sc, totalht, all=1, init_val=init_vals, name='graphs/grow_end.eps')
+    sim.run(continuefor=4, dt=dt*0.001, plot_update_interval=2, data_collect_interval=0.5)
+    htplot.smallheatmap(comp, sc, totalht, all=1, init_val=init_vals, name='graphs/grow_end.eps')
 
     return sim, gui
 

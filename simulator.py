@@ -74,8 +74,8 @@ class Simulator(object):
         :param dt: time step to use for simulation run
         :param plot_update_interval: frequency to update graphs (in s)
         :param data_collect_interval: frequency to collect data for plotting (in s)
-        :param block_after: does gui cause a pause/block after run is finished. If False, graphs close immediately upon
-        completion (default: True)
+        :param block_after: does gui cause a pause/block after run is finished. If True, graphs close immediately upon
+        completion (default: False)
         :param print_time: whether to log to the console the simulation time moved forward and length of time taken
         """
         # assign default values if not specified
@@ -119,7 +119,10 @@ class Simulator(object):
             # apply updates to objects that required deferred updating of their variables
             cls.__apply_updates()
         cls.run_done = True
-        cls.plot_graphs()
+        # allows for delayed display
+        if continuefor is not None and (continuefor - plot_update_interval) >= 0:
+            cls.update_graphs()
+            cls.plot_graphs()
         if print_time:
             print("time taken: {}".format(time.clock()))
         if block_after and cls.__gui is not None:

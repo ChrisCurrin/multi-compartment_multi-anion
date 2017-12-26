@@ -5,9 +5,9 @@ Python 3.x targeted
 @author: Chris Currin & Kira Dusterwald
 """
 import matplotlib
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 from graph import Graph
-matplotlib.use('TkAgg')
 
 
 class GUI(object):

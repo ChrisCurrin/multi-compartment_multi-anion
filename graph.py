@@ -7,7 +7,6 @@ Python 3.x targeted
 import matplotlib.pyplot as plt
 import numpy as np
 
-
 class Graph(object):
     """
     Displays a graph for plotting of variables
@@ -18,10 +17,9 @@ class Graph(object):
         self.fig = plt.figure()
         self.fig.canvas.mpl_connect('close_event', self.handle_close)
         self.ax = self.fig.add_subplot(111)
-        self.ax.hold()
         self.background = self.fig.canvas.copy_from_bbox(self.ax.bbox)
-        plt.hold()
         self.follow_list = []
+        self.fig.canvas.draw()
 
     def add_var(self, x_object: any, x_var: str or dict, y_object: any, y_var: str or dict, line_style: str = None,
                 y_units_scale: float = 1.0, y_plot_units: str = None):
@@ -175,3 +173,6 @@ class Graph(object):
 
     def save(self, name):
         self.fig.savefig(name)
+        
+    def show(self):
+        plt.show()
