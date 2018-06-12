@@ -342,13 +342,13 @@ if __name__ == "__main__":
 
     #[sim, gui] = main(new_gx=1, jkccup=None, anion_flux=False, default_xz=-1, nrcomps=7, dz=0, textra=15, say='graphs/g_rad_anionin_', stretch=False)
 
-    [sim, gui] = main(new_gx=1, jkccup=0e-25, anion_flux=True, default_xz=-1, nrcomps=7, dz=0, textra=15, say='graphs/g_rad_dz_anionin_')
+    #[sim, gui] = main(new_gx=1, jkccup=0e-25, anion_flux=True, default_xz=-1, nrcomps=7, dz=0, textra=15, say='graphs/g_rad_dz_anionin_')
 
     #[sim, gui] = main(new_gx=0, jkccup=1e-14, anion_flux=False, default_xz=-1, nrcomps=7, dz=0, textra=15, say='graphs/f_rad_kcc_')
 
     #[sim, gui] = main(cli_D=0.203,new_gx=0, jkccup=1e-14, anion_flux=False, default_xz=-1, nrcomps=7, dz=0, textra=15, say='graphs/f_rad_dcli_')
 
-    #[sim, gui] = grow(nr=3, textra=7)
+    [sim, gui] = grow(nr=3, textra=7)
 
     if dispose_after:
         sim.dispose()

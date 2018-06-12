@@ -32,9 +32,32 @@ class Colormap(TimeMixin):
         plt.colorbar()
         plt.axis('off')
         if name != 'default':
-            #plt.savefig(name)
+            plt.savefig(name)
             plt.title(name)
         plt.show()
+        
+    def cmap_hts(self, matrix=[1,2,3,4,5],heights=[1,2,3,4,5],totalhts=0,r=0,h=5,color='hot',name='default'):
+        blank_row=[h]*20
+        a=[blank_row]
+        change=int(sum(heights)-totalhts)
+        if change <0:
+            for i in range(-change):
+                a.append([h]*20)
+        for j in range(len(heights)):
+            for i in range(heights[j]):
+                a.append([matrix[j]*1000]*20)
+            a.append(blank_row)
+        if change >0:
+            for i in range(change):
+                a.append(blank_row)
+        plt.figure()
+        plt.imshow(a, cmap=color, interpolation='nearest', vmin=r, vmax=h)
+        plt.colorbar()
+        plt.axis('off')
+        if name != 'default':
+            plt.savefig(name)
+        plt.show()
+
 
     def heatmap(self,compl, comp, compr, sc, totalh, all=0, init_vals=None, title=['default','default','default']):
         sc=1e7
@@ -57,7 +80,7 @@ class Colormap(TimeMixin):
                 self.cmap(np.abs(np.subtract(init_vals[2],vm)), hts, totalh, name=title[2])
         return totalh, init_vals
 
-    def smallheatmap(self,comp, sc, totalh, all=0, init_val=None,name='default'):
+    def smallheatmap(self,comp, sc, totalh, all=0, init_val=None,name='default',radial=True):
         print(init_val)
         hts = []
         ecl = []
@@ -68,7 +91,10 @@ class Colormap(TimeMixin):
         else:
             init_vals = init_val
         for i in comp:
-            hts.append(int(i.L * sc))
+            if radial == True:
+                hts.append(int(i.r * sc))
+            else:
+                hts.append(int(i.L * sc))    
             ecl.append(round(i.ecl, 5))
             vm.append(round(i.V, 5))
             if init_val != None:
@@ -86,11 +112,15 @@ class Colormap(TimeMixin):
         if init_val == None:
             init_vals = [[df[0]],[ecl[0]],[vm[0]]]
         else:
-            self.cmap(np.abs(np.subtract(df,init_vals[0])), hts, totalh)
-            self.cmap(zeroes, hts, totalh,name=name)
-            if all != 0:
-                self.cmap(np.abs(np.subtract(init_vals[1],ecl)), hts, totalh)
-                self.cmap(np.abs(np.subtract(init_vals[2],vm)), hts, totalh)
+            if radial == True:
+                self.cmap(np.abs(np.subtract(df,init_vals[0])), hts, totalh)
+                self.cmap(zeroes, hts, totalh,name=name)
+                if all != 0:
+                    self.cmap(np.abs(np.subtract(init_vals[1],ecl)), hts, totalh)
+                    self.cmap(np.abs(np.subtract(init_vals[2],vm)), hts, totalh)
+            else:
+                self.cmap_hts(np.abs(np.subtract(df,init_vals[0])), hts, totalh)
+                self.cmap_hts(zeroes, hts, totalh,name=name)
         return totalh, init_vals
 
     def step(self, _time: Time = None):

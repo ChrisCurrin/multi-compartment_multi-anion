@@ -199,7 +199,7 @@ class Compartment(TimeMixin):
         self.xm = (self.xm * self.w) / self.w2
         self.w = self.w2
         # affect volume change into length change
-        self.update_radius()
+        self.update_length()
         self.absox = self.xi * self.w
 
     def update_radius(self):
